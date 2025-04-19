@@ -41,9 +41,9 @@
 <body>
   <h1>My GitHub Pages</h1>
   <ul>
-    <li><a href="markdown-converter.html">Markdown converter</a></li>
-    <li><a href="quiz1.html">Quiz</a></li>
-    <li><a href="smart_notes_dynamic_desc.html">Note Viewer</a></li>
+    <li><a href="markdown-converter.html">Markdown converter - takes markdown as input</a></li>
+    <li><a href="quiz1.html">Quiz - takes sample questions file format</a></li>
+    <li><a href="smart_notes_dynamic_desc.html">Note Viewer - uses Gaurav sheet</a></li>
   </ul>
 </body>
 </html>
