@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Markdown Converter</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+  <style>
+    body {
+      background-color: #1f2937; /* Tailwind's gray-800 */
+      color: #f9fafb; /* Tailwind's gray-50 */
+    }
+    textarea, button {
+      color: #111827;
+    }
+    .limited-width {
+      max-width: 66ch;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body class="p-4 font-sans">
+  <div class="flex gap-4">
+    <!-- Left Panel -->
+    <div class="w-1/12 space-y-4 bg-gray-900 p-2 rounded-xl shadow min-w-fit">
+      <textarea id="markdown-input" class="w-full h-24 p-1 border border-gray-700 rounded text-sm bg-gray-800 text-gray-100" placeholder="Markdown..."></textarea>
+      <div class="flex flex-col gap-2">
+        <button onclick="convertTo('html')" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-2 py-1 rounded-xl">HTML</button>
+        <button onclick="convertTo('postit')" class="bg-yellow-500 hover:bg-yellow-600 text-white text-sm px-2 py-1 rounded-xl">Post-it</button>
+        <button onclick="convertTo('accordion')" class="bg-purple-600 hover:bg-purple-700 text-white text-sm px-2 py-1 rounded-xl">Accordion</button>
+        <button onclick="convertTo('pagination')" class="bg-green-600 hover:bg-green-700 text-white text-sm px-2 py-1 rounded-xl">Pagination</button>
+        <button onclick="convertTo('block-pagination')" class="bg-pink-600 hover:bg-pink-700 text-white text-sm px-2 py-1 rounded-xl">--- Pages</button>
+      </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="w-11/12 bg-gray-800 p-4 rounded-xl shadow">
+      <div id="converted-output" class="prose max-w-none space-y-4 text-white limited-width text-center" aria-live="polite" aria-atomic="true"></div>
+    </div>
+  </div>
+
+  <script>
+    function convertTo(format) {
+      const markdown = document.getElementById('markdown-input').value;
+      const html = marked.parse(markdown);
+
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+      const plainText = tempDiv.innerText;
+      const plainTextLines = plainText.split('\n').filter(line => line.trim() !== '');
+
+      let output = '';
+
+      switch (format) {
+        case 'html':
+          output = `<div class='p-4 border rounded bg-gray-700 w-full'>${html}</div>`;
+          break;
+        case 'postit':
+          output = `<div class='flex flex-wrap gap-4 justify-center'>` +
+            plainTextLines.map(line => `<div class='bg-yellow-300 text-black p-4 rounded shadow w-60 break-words'>${line}</div>`).join('') +
+            `</div>`;
+          break;
+        case 'accordion':
+          output = `<div class='space-y-2 w-full'>` +
+            plainTextLines.map((line, index) => `
+              <div class="border rounded border-gray-600">
+                <button class="w-full text-left p-3 font-semibold bg-gray-700 text-white" onclick="toggleAccordion(${index})">
+                  ${line.substring(0, 40)}
+                </button>
+                <div id="acc-${index}" class="p-3 hidden text-white">${line}</div>
+              </div>`).join('') +
+            `</div>`;
+          break;
+        case 'pagination':
+          output = `
+            <div class='p-4 border rounded bg-gray-700 mb-4 w-full text-white' id='pagination-content'>${plainTextLines[0]}</div>
+            <div class='flex flex-wrap gap-2 justify-center'>
+              ${plainTextLines.map((_, i) => `<button class='px-3 py-1 bg-gray-600 hover:bg-gray-500 text-white rounded' onclick='changePage(${i})'>${i + 1}</button>`).join('')}
+            </div>`;
+          window.pageData = plainTextLines;
+          break;
+        case 'block-pagination':
+          const blocks = markdown.split(/---+/).map(b => b.trim()).filter(b => b);
+          window.blockData = blocks;
+          window.blockPage = 0;
+          output = renderBlockPage(0);
+          break;
+      }
+
+      document.getElementById('converted-output').innerHTML = output;
+    }
+
+    function toggleAccordion(index) {
+      const el = document.getElementById(`acc-${index}`);
+      el.classList.toggle('hidden');
+    }
+
+    function changePage(index) {
+      const content = window.pageData[index];
+      document.getElementById('pagination-content').innerText = content;
+    }
+
+    function renderBlockPage(index) {
+      const blockHtml = marked.parse(window.blockData[index]);
+      return `
+        <div class='p-4 border rounded bg-gray-700 mb-4 w-full text-white limited-width mx-auto text-center' id='pagination-block'>${blockHtml}</div>
+        <div class='flex justify-between mt-4'>
+          <button class='px-4 py-2 bg-gray-600 text-white rounded' onclick='prevBlock()' ${index === 0 ? 'disabled' : ''}>&larr; Prev</button>
+          <button class='px-4 py-2 bg-gray-600 text-white rounded' onclick='nextBlock()' ${index === window.blockData.length - 1 ? 'disabled' : ''}>Next &rarr;</button>
+        </div>`;
+    }
+
+    function prevBlock() {
+      if (window.blockPage > 0) {
+        window.blockPage--;
+        document.getElementById('converted-output').innerHTML = renderBlockPage(window.blockPage);
+      }
+    }
+
+    function nextBlock() {
+      if (window.blockPage < window.blockData.length - 1) {
+        window.blockPage++;
+        document.getElementById('converted-output').innerHTML = renderBlockPage(window.blockPage);
+      }
+    }
+  </script>
+</body>
+</html>
