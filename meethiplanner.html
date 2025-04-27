@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mermaid Daily Planner</title>
+<title>Meethi Khushi Daily Planner</title>
 <style>
   body {
     background: linear-gradient(to bottom right, #a1c4fd, #c2e9fb);
@@ -18,28 +18,40 @@
     font-size: 2.5em;
     margin-bottom: 20px;
   }
-  table {
-    width: 100%;
-    border-collapse: collapse;
+  .section {
     background: #ffffffa0;
     border-radius: 12px;
-    overflow: hidden;
+    padding: 20px;
+    margin-bottom: 20px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
   }
-  th, td {
-    padding: 15px;
-    text-align: left;
+  .section h2 {
+    text-align: center;
+    color: #4b3b73;
+    margin-bottom: 15px;
   }
-  th {
-    background: #9ad0ec;
-    color: #2b2d42;
-    font-size: 1.2em;
+  .time-activity {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
   }
-  tr:nth-child(even) {
+  .block {
     background: #e0f7fa;
+    border-radius: 10px;
+    padding: 10px 15px;
+    width: 150px;
+    text-align: center;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
   }
-  tr:nth-child(odd) {
-    background: #d0ebf4;
+  .block-time {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: #2b2d42;
+    margin-bottom: 5px;
+  }
+  .block-activity {
+    font-size: 0.95em;
   }
   .footer {
     text-align: center;
@@ -53,33 +65,44 @@
 
 <h1>🧜‍♀️ Meethi Khushi Daily Planner 🧜‍♀️</h1>
 
-<table>
-  <tr>
-    <th>Time</th>
-    <th>Activity</th>
-  </tr>
-  <tr><td>6:45 AM</td><td>Wake up, freshen up (wash face, brush teeth)</td></tr>
-  <tr><td>7:00 AM</td><td>Light Exercise (5 min stretching + 5 min breathing)</td></tr>
-  <tr><td>7:15 AM</td><td>Breakfast with family</td></tr>
-  <tr><td>7:45 AM</td><td>Set up laptop, notebook, water bottle, ready for class</td></tr>
-  <tr><td>8:00–11:10 AM</td><td>Online School Classes (10 min breaks between)</td></tr>
-  <tr><td>11:10–11:30 AM</td><td>Relax & Small Healthy Snack</td></tr>
-  <tr><td>11:30–12:15 PM</td><td>Finish pending homework (from morning classes)</td></tr>
-  <tr><td>12:15–1:00 PM</td><td>Playtime (Indoor or Outdoor — cycle, ball, yoga, etc.)</td></tr>
-  <tr><td>1:00 PM</td><td>Lunch with family</td></tr>
-  <tr><td>1:30–2:30 PM</td><td>Screen Time (YouTube / Gaming / Fun Videos)</td></tr>
-  <tr><td>2:30–3:30 PM</td><td>Quiet Study Time (self-study 1-2 subjects - deep work)</td></tr>
-  <tr><td>3:30–4:00 PM</td><td>Break — Light snack and casual talk with family</td></tr>
-  <tr><td>4:00–5:00 PM</td><td>Physical activity again (outdoor preferred) — games, walk, etc.</td></tr>
-  <tr><td>5:00–5:45 PM</td><td>Second Study Session (catch up, homework review, quiz practice)</td></tr>
-  <tr><td>5:45–6:30 PM</td><td>Free time (indoor/outdoor play or hobby)</td></tr>
-  <tr><td>6:30 PM</td><td>Help with small household chores (setting table, organizing room)</td></tr>
-  <tr><td>7:00 PM</td><td>Dinner with family</td></tr>
-  <tr><td>7:30–8:00 PM</td><td>Fun family time (board games, storytelling, casual talks)</td></tr>
-  <tr><td>8:00–8:30 PM</td><td>Light Revision (quick recap of the day, or reading)</td></tr>
-  <tr><td>8:30–9:30 PM</td><td>Screen Time (YouTube / Movies / Fun Shows)</td></tr>
-  <tr><td>9:30 PM</td><td>Sleep</td></tr>
-</table>
+<div class="section">
+  <h2>🌞 Morning</h2>
+  <div class="time-activity">
+    <div class="block"><div class="block-time">6:45 AM</div><div class="block-activity">Wake up, freshen up</div></div>
+    <div class="block"><div class="block-time">7:00 AM</div><div class="block-activity">Light Exercise</div></div>
+    <div class="block"><div class="block-time">7:15 AM</div><div class="block-activity">Breakfast with family</div></div>
+    <div class="block"><div class="block-time">7:45 AM</div><div class="block-activity">Set up for class</div></div>
+    <div class="block"><div class="block-time">8:00–11:10 AM</div><div class="block-activity">Online School Classes</div></div>
+    <div class="block"><div class="block-time">11:10–11:30 AM</div><div class="block-activity">Relax & Snack</div></div>
+    <div class="block"><div class="block-time">11:30–12:15 PM</div><div class="block-activity">Finish homework</div></div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>🌈 Afternoon</h2>
+  <div class="time-activity">
+    <div class="block"><div class="block-time">12:15–1:00 PM</div><div class="block-activity">Playtime</div></div>
+    <div class="block"><div class="block-time">1:00 PM</div><div class="block-activity">Lunch with family</div></div>
+    <div class="block"><div class="block-time">1:30–2:30 PM</div><div class="block-activity">Screen Time (YouTube / Gaming)</div></div>
+    <div class="block"><div class="block-time">2:30–3:30 PM</div><div class="block-activity">Quiet Study Time</div></div>
+    <div class="block"><div class="block-time">3:30–4:00 PM</div><div class="block-activity">Snack Break</div></div>
+    <div class="block"><div class="block-time">4:00–5:00 PM</div><div class="block-activity">Outdoor Play</div></div>
+    <div class="block"><div class="block-time">5:00–5:45 PM</div><div class="block-activity">Second Study Session</div></div>
+    <div class="block"><div class="block-time">5:45–6:30 PM</div><div class="block-activity">Free Time / Hobby</div></div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>🌙 Evening</h2>
+  <div class="time-activity">
+    <div class="block"><div class="block-time">6:30 PM</div><div class="block-activity">Help with chores</div></div>
+    <div class="block"><div class="block-time">7:00 PM</div><div class="block-activity">Dinner with family</div></div>
+    <div class="block"><div class="block-time">7:30–8:00 PM</div><div class="block-activity">Fun family time</div></div>
+    <div class="block"><div class="block-time">8:00–8:30 PM</div><div class="block-activity">Light Revision</div></div>
+    <div class="block"><div class="block-time">8:30–9:30 PM</div><div class="block-activity">Screen Time (YouTube / Shows)</div></div>
+    <div class="block"><div class="block-time">9:30 PM</div><div class="block-activity">Sleep</div></div>
+  </div>
+</div>
 
 <div class="footer">
   Made with ✨ Mermaid Magic ✨
