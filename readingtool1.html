@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" class="dark"> <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Reader</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .output-frame {
+            overflow-y: auto;
+        }
+
+        #currentSentence {
+            word-wrap: break-word;
+            max-width: 100%;
+            font-size: 1.0rem; /* Initial font size */
+            line-height: 1.6; /* Improved line height for readability */
+        }
+    </style>
+</head>
+<body class="bg-gray-800 text-gray-200 flex min-h-screen"> <div class="input-frame w-1/12 p-6 border-r border-gray-700 flex flex-col justify-between">
+        <div>
+            <h2 class="text-xl font-semibold mb-4 text-gray-300">Paste Text:</h2>
+        </div>
+        <div class="mt-6">
+            <button onclick="increaseFontSize()" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-full">+</button>
+            <button onclick="decreaseFontSize()" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-full mt-2">-</button>
+        </div>
+        <textarea id="inputText" class="w-full h-48 p-2 border border-gray-600 rounded shadow-sm focus:outline-none focus:ring focus-blue-500 bg-gray-700 text-gray-300"></textarea>
+        <button onclick="processText()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4 w-full">Process</button>
+    </div>
+    <div class="output-frame w-11/12 p-6">
+        <div class="flex justify-start items-center mb-4">
+            <button id="prevBtn" onclick="prevSentence()" class="bg-gray-600 hover:bg-gray-500 text-gray-300 font-bold py-2 px-4 rounded mr-2 disabled:opacity-50">Previous</button>
+            <button id="nextBtn" onclick="nextSentence()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50">Next</button>
+        </div>
+        <div id="paginationTop" class="flex flex-wrap mb-4">
+        </div>
+        <div id="outputSentences" class="mt-4">
+            <p id="currentSentence" class="text-lg text-gray-300"></p>
+        </div>
+    </div>
+
+    <script>
+        let sentences = [];
+        let currentSentenceIndex = 0;
+        const currentSentenceElement = document.getElementById('currentSentence');
+        const prevButton = document.getElementById('prevBtn');
+        const nextButton = document.getElementById('nextBtn');
+        const paginationTopDiv = document.getElementById('paginationTop');
+        const body = document.body;
+        const maxCharsPerLine = 60; // Further reduced character limit for better readability at larger fonts
+        let currentFontSize = 1.0; // Initial font size in rem
+
+        function processText() {
+            const inputText = document.getElementById('inputText').value;
+            sentences = inputText.split(/[.?!]\s+/).filter(sentence => sentence.trim() !== '').map(trimSentence);
+            currentSentenceIndex = 0;
+            showCurrentSentence();
+            updateButtonStates();
+            renderPagination();
+            resetFontSize(); // Reset font size when new text is processed
+        }
+
+        function trimSentence(sentence) {
+            let lines = [];
+            let currentLine = '';
+            const words = sentence.split(' ');
+            for (const word of words) {
+                if ((currentLine + (currentLine ? ' ' : '') + word).length <= maxCharsPerLine) {
+                    currentLine += (currentLine ? ' ' : '') + word;
+                } else {
+                    lines.push(currentLine);
+                    currentLine = word;
+                }
+            }
+            lines.push(currentLine);
+            return lines.join('<br>');
+        }
+
+        function showCurrentSentence() {
+            if (sentences.length > 0) {
+                currentSentenceElement.innerHTML = sentences[currentSentenceIndex];
+                currentSentenceElement.style.fontSize = `${currentFontSize}rem`; // Apply current font size
+            } else {
+                currentSentenceElement.textContent = "No text processed yet.";
+            }
+        }
+
+        function nextSentence() {
+            if (currentSentenceIndex < sentences.length - 1) {
+                currentSentenceIndex++;
+                showCurrentSentence();
+                updateButtonStates();
+                updateActivePageButton();
+            }
+        }
+
+        function prevSentence() {
+            if (currentSentenceIndex > 0) {
+                currentSentenceIndex--;
+                showCurrentSentence();
+                updateButtonStates();
+                updateActivePageButton();
+            }
+        }
+
+        function updateButtonStates() {
+            prevButton.disabled = currentSentenceIndex === 0;
+            nextButton.disabled = currentSentenceIndex === sentences.length - 1 || sentences.length === 0;
+        }
+
+        function renderPagination() {
+            paginationTopDiv.innerHTML = '';
+            const numPages = sentences.length;
+            for (let i = 0; i < numPages; i++) {
+                const pageButtonTop = document.createElement('button');
+                pageButtonTop.textContent = i + 1;
+                pageButtonTop.classList.add('bg-gray-700', 'hover:bg-gray-600', 'text-gray-300', 'font-bold', 'py-2', 'px-3', 'rounded-full', 'mr-2', 'mb-2');
+                pageButtonTop.addEventListener('click', () => {
+                    currentSentenceIndex = i;
+                    showCurrentSentence();
+                    updateButtonStates();
+                    updateActivePageButton();
+                });
+                paginationTopDiv.appendChild(pageButtonTop);
+            }
+            updateActivePageButton();
+        }
+
+        function updateActivePageButton() {
+            const topPageButtons = paginationTopDiv.querySelectorAll('button');
+
+            topPageButtons.forEach((button, index) => {
+                if (index === currentSentenceIndex) {
+                    button.classList.remove('bg-gray-700', 'hover:bg-gray-600', 'text-gray-300');
+                    button.classList.add('bg-blue-500', 'text-white', 'hover:bg-blue-700');
+                } else {
+                    button.classList.add('bg-gray-700', 'hover:bg-gray-600', 'text-gray-300');
+                    button.classList.remove('bg-blue-500', 'text-white', 'hover:bg-blue-700');
+                }
+            });
+        }
+
+        function increaseFontSize() {
+            currentFontSize += 0.2; // Increased increment for more noticeable change
+            showCurrentSentence();
+        }
+
+        function decreaseFontSize() {
+            currentFontSize -= 0.2;
+            if (currentFontSize < 0.8) { // Prevent font size from becoming too small
+                currentFontSize = 0.8;
+            }
+            showCurrentSentence();
+        }
+
+        function resetFontSize() {
+            currentFontSize = 1.0;
+        }
+    </script>
+</body>
+</html>
