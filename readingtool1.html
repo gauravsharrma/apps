@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en" class="dark"> <head>
+<html lang="en" class="dark">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Text Reader</title>
@@ -17,7 +18,8 @@
         }
     </style>
 </head>
-<body class="bg-gray-800 text-gray-200 flex min-h-screen"> <div class="input-frame w-1/12 p-6 border-r border-gray-700 flex flex-col justify-between">
+<body class="bg-gray-800 text-gray-200 flex flex-col md:flex-row min-h-screen">
+    <div class="input-frame w-full md:w-1/4 p-6 border-b md:border-r border-gray-700 flex flex-col justify-between order-2 md:order-1">
         <div>
             <h2 class="text-xl font-semibold mb-4 text-gray-300">Paste Text:</h2>
         </div>
@@ -28,12 +30,14 @@
         <textarea id="inputText" class="w-full h-48 p-2 border border-gray-600 rounded shadow-sm focus:outline-none focus:ring focus-blue-500 bg-gray-700 text-gray-300"></textarea>
         <button onclick="processText()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4 w-full">Process</button>
     </div>
-    <div class="output-frame w-11/12 p-6">
-        <div class="flex justify-start items-center mb-4">
-            <button id="prevBtn" onclick="prevSentence()" class="bg-gray-600 hover:bg-gray-500 text-gray-300 font-bold py-2 px-4 rounded mr-2 disabled:opacity-50">Previous</button>
-            <button id="nextBtn" onclick="nextSentence()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50">Next</button>
-        </div>
-        <div id="paginationTop" class="flex flex-wrap mb-4">
+    <div class="output-frame w-full md:w-3/4 p-6 order-1 md:order-2">
+        <div class="flex flex-col md:flex-row justify-start items-center mb-4">
+            <div class="mb-2 md:mb-0 md:mr-4">
+                <button id="prevBtn" onclick="prevSentence()" class="bg-gray-600 hover:bg-gray-500 text-gray-300 font-bold py-2 px-4 rounded mr-2 disabled:opacity-50">Previous</button>
+                <button id="nextBtn" onclick="nextSentence()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50">Next</button>
+            </div>
+            <div id="paginationTop" class="flex flex-wrap">
+            </div>
         </div>
         <div id="outputSentences" class="mt-4">
             <p id="currentSentence" class="text-lg text-gray-300"></p>
