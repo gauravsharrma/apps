@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Digital Marketing</title>
-  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Merriweather&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -12,38 +11,48 @@
       font-family: 'Merriweather', serif;
     }
     .tab-button.active {
-      @apply bg-indigo-600 text-white;
+      background-color: #4f46e5;
+      color: white;
     }
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-start justify-center p-6">
-
   <div class="bg-white shadow-lg rounded-lg p-6 max-w-2xl w-full">
-    <!-- Sheet Tabs -->
+    <!-- Tabs -->
     <div id="tabs" class="flex flex-wrap gap-2 mb-4"></div>
 
-    <!-- Pagination controls -->
+    <!-- Pagination -->
     <div class="flex justify-between items-center mb-4">
       <button onclick="prevRow()" class="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded" id="prevBtn">Previous</button>
       <span id="counter" class="text-sm text-gray-600"></span>
       <button onclick="nextRow()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded" id="nextBtn">Next</button>
     </div>
 
-    <!-- Data display -->
+    <!-- Data Display -->
     <div id="data"></div>
   </div>
 
   <script>
-    const sheetID = '1h1hM0o-tS1tf57rhfCnCvGZmM0TaMegsYvvE5WxcTfA'; // 🔁 Replace with your actual Google Sheet ID
-    const sheetNames = ['Sheet1', 'Sheet2', 'Sheet3']; // 🔁 Update with your actual sheet names
+    const sheetID = 'YOUR_SHEET_ID_HERE'; // 🔁 Replace with your real sheet ID
     let sheetData = [];
     let currentIndex = 0;
-    let currentSheet = sheetNames[0];
+    let sheetNames = [];
+    let currentSheet = '';
+
+    // Get sheet names dynamically
+    async function getSheetNames() {
+      const url = `https://spreadsheets.google.com/feeds/worksheets/${sheetID}/public/basic?alt=json`;
+      const res = await fetch(url);
+      const data = await res.json();
+      sheetNames = data.feed.entry.map(entry => entry.title.$t);
+      currentSheet = sheetNames[0];
+      createTabs();
+      fetchSheetData(currentSheet);
+    }
 
     function createTabs() {
       const tabsContainer = document.getElementById('tabs');
       tabsContainer.innerHTML = '';
-
       sheetNames.forEach(sheet => {
         const btn = document.createElement('button');
         btn.textContent = sheet;
@@ -63,7 +72,6 @@
     function fetchSheetData(sheetName) {
       const queryString = encodeURIComponent('SELECT *');
       const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?sheet=${sheetName}&tq=${queryString}`;
-
       fetch(url)
         .then(res => res.text())
         .then(rep => {
@@ -123,9 +131,8 @@
       }
     }
 
-    // Initialize
-    createTabs();
-    fetchSheetData(currentSheet);
+    // Load everything
+    getSheetNames();
   </script>
 </body>
 </html>
