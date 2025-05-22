@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sheet Viewer</title>
+  <title>Sheet Row Viewer</title>
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Merriweather&display=swap" rel="stylesheet">
   <script>
@@ -12,7 +12,7 @@
 
     function fetchSheetData() {
       const queryString = encodeURIComponent('SELECT *');
-      const sheetID = '1h1hM0o-tS1tf57rhfCnCvGZmM0TaMegsYvvE5WxcTfA'; // 🔁 Replace with your actual Sheet ID
+      const sheetID = '1h1hM0o-tS1tf57rhfCnCvGZmM0TaMegsYvvE5WxcTfA'; // 🔁 Replace this with your actual Sheet ID
       const sheetName = 'Sheet1';
       const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?sheet=${sheetName}&tq=${queryString}`;
 
@@ -27,28 +27,30 @@
     }
 
     function displayRow() {
-      const container = document.getElementById('data');
-      container.innerHTML = '';
+      const heading = document.getElementById('main-heading');
+      const list = document.getElementById('data');
+      heading.innerHTML = '';
+      list.innerHTML = '';
 
       if (sheetData.length === 0) {
-        container.innerHTML = '<p class="text-center text-gray-600">No data found.</p>';
+        heading.innerText = 'No data found.';
         return;
       }
 
       const row = sheetData[currentIndex];
-      const ul = document.createElement('ul');
-      ul.className = 'list-disc list-inside space-y-2';
-
       row.forEach((col, i) => {
         if (col && col.trim() !== '') {
-          const li = document.createElement('li');
-          li.className = 'text-gray-800 text-lg';
-          li.innerHTML = (i === 0) ? `<strong>${col}</strong>` : `${col}`;
-          ul.appendChild(li);
+          if (i === 0) {
+            heading.innerText = col;
+          } else {
+            const li = document.createElement('li');
+            li.className = 'text-gray-800 text-lg';
+            li.innerText = col;
+            list.appendChild(li);
+          }
         }
       });
 
-      container.appendChild(ul);
       document.getElementById('counter').innerText = `Row ${currentIndex + 1} of ${sheetData.length}`;
     }
 
@@ -75,15 +77,20 @@
     }
   </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
-  <div class="bg-white shadow-lg rounded-lg p-6 max-w-xl w-full">
-    <h1 class="text-2xl font-bold text-center mb-4 text-indigo-600">Google Sheet Viewer</h1>
-    <div id="data" class="mb-4"></div>
-    <div class="flex justify-between items-center">
-      <button onclick="prevRow()" class="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded disabled:opacity-50" id="prevBtn">Previous</button>
+<body class="bg-gray-100 min-h-screen flex flex-col items-start justify-start p-6">
+  <div class="bg-white shadow-lg rounded-lg p-6 w-full max-w-xl">
+    <!-- Navigation -->
+    <div class="flex justify-between items-center mb-6">
+      <button onclick="prevRow()" class="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded">Previous</button>
       <span id="counter" class="text-sm text-gray-600"></span>
-      <button onclick="nextRow()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded" id="nextBtn">Next</button>
+      <button onclick="nextRow()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded">Next</button>
     </div>
+
+    <!-- Main Heading (First Column) -->
+    <h2 id="main-heading" class="text-2xl font-bold text-indigo-700 mb-4"></h2>
+
+    <!-- Data Display -->
+    <ul id="data" class="list-disc list-inside space-y-2"></ul>
   </div>
 </body>
 </html>
