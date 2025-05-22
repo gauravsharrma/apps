@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Digital Marketing3</title>
+  <title>Digital Marketing4</title>
   <link href="https://fonts.googleapis.com/css2?family=Merriweather&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -41,14 +41,22 @@
 
     // Get sheet names dynamically
     async function getSheetNames() {
-      const url = `https://spreadsheets.google.com/feeds/worksheets/${sheetID}/public/basic?alt=json`;
-      const res = await fetch(url);
-      const data = await res.json();
-      sheetNames = data.feed.entry.map(entry => entry.title.$t);
-      currentSheet = sheetNames[0];
-      createTabs();
-      fetchSheetData(currentSheet);
+      const apiKey = '1h1hM0o-tS1tf57rhfCnCvGZmM0TaMegsYvvE5WxcTfA'; // ✅ Replace this
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetID}?fields=sheets.properties.title&key=${apiKey}`;
+    
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        sheetNames = data.sheets.map(sheet => sheet.properties.title);
+        currentSheet = sheetNames[0];
+        createTabs();
+        fetchSheetData(currentSheet);
+      } catch (error) {
+        console.error("Failed to load sheet names", error);
+        document.getElementById('data').innerHTML = `<p class="text-red-500">Failed to load sheet names. Check console.</p>`;
+      }
     }
+
 
     function createTabs() {
       const tabsContainer = document.getElementById('tabs');
