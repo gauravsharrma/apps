@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Notes App</title>
+  <title>My Notes App with Tags</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Merriweather&display=swap" rel="stylesheet">
   <style>
@@ -16,19 +16,28 @@
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
-  <div class="bg-white shadow-lg rounded-lg p-6 max-w-xl w-full">
-    <h1 class="text-2xl font-bold mb-4 text-center">📝 My Notes</h1>
-    
+  <div class="bg-white shadow-lg rounded-lg p-6 max-w-2xl w-full">
+    <h1 class="text-2xl font-bold mb-4 text-center">📝 Notes with Tags</h1>
+
     <div class="mb-4">
+      <input id="tagInput" class="w-full border border-gray-300 p-2 rounded mb-2" placeholder="Tag (e.g. work, personal)" />
       <textarea id="noteInput" class="w-full border border-gray-300 p-2 rounded h-24 resize-none overflow-hidden" placeholder="Write a note..." oninput="autoResize(this)"></textarea>
       <button onclick="addNote()" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add Note</button>
     </div>
-    
-    <ul id="notesList" class="space-y-3"></ul>
+
+    <div class="mb-4">
+      <input id="filterInput" class="w-full border border-gray-300 p-2 rounded" placeholder="Filter by tag..." oninput="filterNotes()" />
+    </div>
+
+    <ul id="notesList" class="space-y-3 mb-4"></ul>
+
+    <button onclick="downloadExcel()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Download as Excel</button>
   </div>
 
   <script type="module">
-    // ✅ Replace this with your actual Firebase config
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, addDoc, deleteDoc, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyCnpFZqYly4Z5AVpXLuRdpjQSKKMN6QqDs",
       authDomain: "gauravnotes-60f15.firebaseapp.com",
@@ -38,15 +47,16 @@
       appId: "1:591059791118:web:72cac315b3907a6499bb5f"
     };
 
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, addDoc, deleteDoc, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const notesCollection = collection(db, "notes");
 
     const noteInput = document.getElementById("noteInput");
+    const tagInput = document.getElementById("tagInput");
+    const filterInput = document.getElementById("filterInput");
     const notesList = document.getElementById("notesList");
+
+    let allNotes = [];
 
     window.autoResize = function (textarea) {
       textarea.style.height = "auto";
@@ -55,10 +65,11 @@
 
     window.addNote = async function () {
       const text = noteInput.value.trim();
-      if (!text) return;
-      await addDoc(notesCollection, { text });
+      const tag = tagInput.value.trim();
+      if (!text || !tag) return;
+      await addDoc(notesCollection, { text, tag });
       noteInput.value = "";
-      autoResize(noteInput);
+      tagInput.value = "";
       await loadNotes();
     };
 
@@ -83,29 +94,35 @@
       }
     };
 
+    window.filterNotes = function () {
+      const filter = filterInput.value.toLowerCase();
+      renderNotes(filter);
+    };
+
     async function loadNotes() {
       notesList.innerHTML = "";
       const snapshot = await getDocs(notesCollection);
-      snapshot.forEach(docSnap => {
-        const note = docSnap.data();
-        const noteId = docSnap.id;
-        const textareaId = `note-${noteId}`;
-        const saveBtnId = `btn-${noteId}`;
+      allNotes = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+      renderNotes();
+    }
+
+    function renderNotes(filter = "") {
+      notesList.innerHTML = "";
+      const filteredNotes = allNotes.filter(n => n.tag.toLowerCase().includes(filter));
+
+      filteredNotes.forEach(note => {
+        const textareaId = `note-${note.id}`;
+        const saveBtnId = `btn-${note.id}`;
 
         const li = document.createElement("li");
         li.className = "bg-gray-50 p-3 rounded border";
 
         li.innerHTML = `
-          <textarea 
-            id="${textareaId}" 
-            class="w-full p-2 border rounded mb-2 resize-none overflow-hidden" 
-            readonly 
-            oninput="autoResize(this)"
-            style="height:auto;"
-          >${note.text}</textarea>
+          <div class="text-sm text-gray-500 mb-1">#${note.tag}</div>
+          <textarea id="${textareaId}" class="w-full p-2 border rounded mb-2 resize-none overflow-hidden" readonly oninput="autoResize(this)" style="height:auto;">${note.text}</textarea>
           <div class="flex justify-end space-x-2">
-            <button id="${saveBtnId}" onclick="editNote('${noteId}', '${textareaId}', '${saveBtnId}')" class="text-blue-600 hover:text-blue-800 text-sm">Edit</button>
-            <button onclick="deleteNote('${noteId}')" class="text-red-500 hover:text-red-700 text-sm">Delete</button>
+            <button id="${saveBtnId}" onclick="editNote('${note.id}', '${textareaId}', '${saveBtnId}')" class="text-blue-600 hover:text-blue-800 text-sm">Edit</button>
+            <button onclick="deleteNote('${note.id}')" class="text-red-500 hover:text-red-700 text-sm">Delete</button>
           </div>
         `;
 
@@ -113,6 +130,20 @@
         setTimeout(() => autoResize(document.getElementById(textareaId)), 0);
       });
     }
+
+    window.downloadExcel = function () {
+      let csvContent = "data:text/csv;charset=utf-8,Tag,Note\n";
+      allNotes.forEach(note => {
+        csvContent += `${note.tag.replace(/,/g, '')},"${note.text.replace(/"/g, '""')}"\n`;
+      });
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "notes_with_tags.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
 
     window.onload = loadNotes;
   </script>
