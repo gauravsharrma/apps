@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Notes with Multi-Tags2</title>
+  <title>Notes with Multi-Tags456</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Merriweather&display=swap" rel="stylesheet">
   <style>
@@ -28,7 +28,7 @@
 
     <div class="mb-4">
       <div class="relative">
-        <input id="tagInput" class="w-full border border-gray-300 p-2 rounded mb-2" placeholder="Type a tag and press Enter..." oninput="filterTagSuggestions()" />
+        <input id="tagInput" class="w-full border border-gray-300 p-2 rounded mb-2" placeholder="Type a tag and press Enter..." />
         <div id="tagSuggestions" class="absolute z-10 bg-white border w-full rounded shadow max-h-40 overflow-y-auto hidden"></div>
       </div>
       <div id="selectedTags" class="flex flex-wrap mb-2"></div>
@@ -126,13 +126,11 @@
         if (!selectedTags.includes(tag)) selectedTags.push(tag);
         tagInput.value = "";
         renderSelectedTags();
+        tagSuggestionsBox.classList.add("hidden");
       }
     });
 
-    window.filterNotes = function () {
-      const filter = filterInput.value.toLowerCase();
-      renderNotes(filter);
-    };
+    tagInput.addEventListener("input", filterTagSuggestions);
 
     function filterTagSuggestions() {
       const input = tagInput.value.toLowerCase();
@@ -153,11 +151,16 @@
       tagSuggestionsBox.classList.toggle("hidden", suggestions.length === 0);
     }
 
+    window.filterNotes = function () {
+      const filter = filterInput.value.toLowerCase();
+      renderNotes(filter);
+    };
+
     async function loadNotes() {
       notesList.innerHTML = "";
       const snapshot = await getDocs(notesCollection);
       allNotes = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
-      allTags = new Set(allNotes.flatMap(note => note.tags || []));
+      allTags = new Set(allNotes.flatMap(note => Array.isArray(note.tags) ? note.tags : []));
       renderNotes();
     }
 
@@ -172,7 +175,7 @@
         const li = document.createElement("li");
         li.className = "bg-gray-50 p-3 rounded border";
 
-        const tagChips = note.tags.map(t => `<span class='tag-chip text-sm'>${t}</span>`).join(" ");
+        const tagChips = (note.tags || []).map(t => `<span class='tag-chip text-sm'>${t}</span>`).join(" ");
 
         li.innerHTML = `
           <div class="mb-2">${tagChips}</div>
