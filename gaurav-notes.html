@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Notes App with Tags</title>
+  <title>Notes with Multi-Tags1</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Merriweather&display=swap" rel="stylesheet">
   <style>
@@ -13,14 +13,25 @@
     textarea {
       vertical-align: top;
     }
+    .tag-chip {
+      background-color: #e5e7eb;
+      border-radius: 9999px;
+      padding: 0.25rem 0.75rem;
+      margin: 0.25rem;
+      display: inline-block;
+    }
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
   <div class="bg-white shadow-lg rounded-lg p-6 max-w-2xl w-full">
-    <h1 class="text-2xl font-bold mb-4 text-center">📝 Notes with Tags</h1>
+    <h1 class="text-2xl font-bold mb-4 text-center">📝 Notes with Multi-Tags</h1>
 
     <div class="mb-4">
-      <input id="tagInput" class="w-full border border-gray-300 p-2 rounded mb-2" placeholder="Tag (e.g. work, personal)" />
+      <div class="relative">
+        <input id="tagInput" class="w-full border border-gray-300 p-2 rounded mb-2" placeholder="Type a tag and press Enter..." oninput="filterTagSuggestions()" />
+        <div id="tagSuggestions" class="absolute z-10 bg-white border w-full rounded shadow max-h-40 overflow-y-auto hidden"></div>
+      </div>
+      <div id="selectedTags" class="flex flex-wrap mb-2"></div>
       <textarea id="noteInput" class="w-full border border-gray-300 p-2 rounded h-24 resize-none overflow-hidden" placeholder="Write a note..." oninput="autoResize(this)"></textarea>
       <button onclick="addNote()" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add Note</button>
     </div>
@@ -51,12 +62,16 @@
     const db = getFirestore(app);
     const notesCollection = collection(db, "notes");
 
-    const noteInput = document.getElementById("noteInput");
     const tagInput = document.getElementById("tagInput");
+    const noteInput = document.getElementById("noteInput");
+    const selectedTagsContainer = document.getElementById("selectedTags");
+    const tagSuggestionsBox = document.getElementById("tagSuggestions");
     const filterInput = document.getElementById("filterInput");
     const notesList = document.getElementById("notesList");
 
     let allNotes = [];
+    let selectedTags = [];
+    let allTags = new Set();
 
     window.autoResize = function (textarea) {
       textarea.style.height = "auto";
@@ -65,11 +80,11 @@
 
     window.addNote = async function () {
       const text = noteInput.value.trim();
-      const tag = tagInput.value.trim();
-      if (!text || !tag) return;
-      await addDoc(notesCollection, { text, tag });
+      if (!text || selectedTags.length === 0) return;
+      await addDoc(notesCollection, { text, tags: selectedTags });
       noteInput.value = "";
-      tagInput.value = "";
+      selectedTags = [];
+      renderSelectedTags();
       await loadNotes();
     };
 
@@ -94,21 +109,61 @@
       }
     };
 
+    function renderSelectedTags() {
+      selectedTagsContainer.innerHTML = "";
+      selectedTags.forEach(tag => {
+        const span = document.createElement("span");
+        span.className = "tag-chip text-sm";
+        span.innerText = tag;
+        selectedTagsContainer.appendChild(span);
+      });
+    }
+
+    tagInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && tagInput.value.trim()) {
+        e.preventDefault();
+        const tag = tagInput.value.trim().toLowerCase();
+        if (!selectedTags.includes(tag)) selectedTags.push(tag);
+        tagInput.value = "";
+        renderSelectedTags();
+      }
+    });
+
     window.filterNotes = function () {
       const filter = filterInput.value.toLowerCase();
       renderNotes(filter);
     };
 
+    function filterTagSuggestions() {
+      const input = tagInput.value.toLowerCase();
+      const suggestions = Array.from(allTags).filter(tag => tag.includes(input) && !selectedTags.includes(tag));
+      tagSuggestionsBox.innerHTML = "";
+      suggestions.forEach(tag => {
+        const div = document.createElement("div");
+        div.className = "p-2 hover:bg-gray-100 cursor-pointer";
+        div.innerText = tag;
+        div.onclick = () => {
+          selectedTags.push(tag);
+          tagInput.value = "";
+          renderSelectedTags();
+          tagSuggestionsBox.classList.add("hidden");
+        };
+        tagSuggestionsBox.appendChild(div);
+      });
+      tagSuggestionsBox.classList.toggle("hidden", suggestions.length === 0);
+    }
+
     async function loadNotes() {
       notesList.innerHTML = "";
       const snapshot = await getDocs(notesCollection);
       allNotes = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+      allTags = new Set(allNotes.flatMap(note => note.tags || []));
       renderNotes();
     }
 
     function renderNotes(filter = "") {
       notesList.innerHTML = "";
-      const filteredNotes = allNotes.filter(n => n.tag.toLowerCase().includes(filter));
+      const filteredNotes = allNotes.filter(n => n.tags.some(tag => tag.includes(filter)));
 
       filteredNotes.forEach(note => {
         const textareaId = `note-${note.id}`;
@@ -117,8 +172,10 @@
         const li = document.createElement("li");
         li.className = "bg-gray-50 p-3 rounded border";
 
+        const tagChips = note.tags.map(t => `<span class='tag-chip text-sm'>${t}</span>`).join(" ");
+
         li.innerHTML = `
-          <div class="text-sm text-gray-500 mb-1">#${note.tag}</div>
+          <div class="mb-2">${tagChips}</div>
           <textarea id="${textareaId}" class="w-full p-2 border rounded mb-2 resize-none overflow-hidden" readonly oninput="autoResize(this)" style="height:auto;">${note.text}</textarea>
           <div class="flex justify-end space-x-2">
             <button id="${saveBtnId}" onclick="editNote('${note.id}', '${textareaId}', '${saveBtnId}')" class="text-blue-600 hover:text-blue-800 text-sm">Edit</button>
@@ -132,9 +189,9 @@
     }
 
     window.downloadExcel = function () {
-      let csvContent = "data:text/csv;charset=utf-8,Tag,Note\n";
+      let csvContent = "data:text/csv;charset=utf-8,Tags,Note\n";
       allNotes.forEach(note => {
-        csvContent += `${note.tag.replace(/,/g, '')},"${note.text.replace(/"/g, '""')}"\n`;
+        csvContent += `"${(note.tags || []).join(', ')}","${note.text.replace(/"/g, '""')}"\n`;
       });
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement("a");
