@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Notes with Multi-Tags456</title>
+  <title>Notes with Multi-Tags111</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Merriweather&display=swap" rel="stylesheet">
   <style>
@@ -33,16 +33,17 @@
       </div>
       <div id="selectedTags" class="flex flex-wrap mb-2"></div>
       <textarea id="noteInput" class="w-full border border-gray-300 p-2 rounded h-24 resize-none overflow-hidden" placeholder="Write a note..." oninput="autoResize(this)"></textarea>
-      <button onclick="addNote()" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add Note</button>
+      <button id="addNoteBtn" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add Note</button>
     </div>
 
     <div class="mb-4">
-      <input id="filterInput" class="w-full border border-gray-300 p-2 rounded" placeholder="Filter by tag..." oninput="filterNotes()" />
+      <input id="filterInput" class="w-full border border-gray-300 p-2 rounded" placeholder="Filter by tag..." />
     </div>
 
     <ul id="notesList" class="space-y-3 mb-4"></ul>
 
-    <button onclick="downloadExcel()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Download as Excel</button>
+    <button id="downloadBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Download as Excel</button>
+
   </div>
 
   <script type="module">
@@ -73,12 +74,12 @@
     let selectedTags = [];
     let allTags = new Set();
 
-    window.autoResize = function (textarea) {
+    function autoResize(textarea) {
       textarea.style.height = "auto";
       textarea.style.height = textarea.scrollHeight + "px";
-    };
+    }
 
-    window.addNote = async function () {
+    async function addNote() {
       const text = noteInput.value.trim();
       if (!text || selectedTags.length === 0) return;
       await addDoc(notesCollection, { text, tags: selectedTags });
@@ -86,14 +87,14 @@
       selectedTags = [];
       renderSelectedTags();
       await loadNotes();
-    };
+    }
 
-    window.deleteNote = async function (id) {
+    async function deleteNote(id) {
       await deleteDoc(doc(db, "notes", id));
       await loadNotes();
-    };
+    }
 
-    window.editNote = async function (id, textareaId, saveButtonId) {
+    async function editNote(id, textareaId, saveButtonId) {
       const textarea = document.getElementById(textareaId);
       const button = document.getElementById(saveButtonId);
       if (textarea.readOnly) {
@@ -107,7 +108,7 @@
         button.innerText = "Edit";
         autoResize(textarea);
       }
-    };
+    }
 
     function renderSelectedTags() {
       selectedTagsContainer.innerHTML = "";
@@ -118,19 +119,6 @@
         selectedTagsContainer.appendChild(span);
       });
     }
-
-    tagInput.addEventListener("keydown", function (e) {
-      if (e.key === "Enter" && tagInput.value.trim()) {
-        e.preventDefault();
-        const tag = tagInput.value.trim().toLowerCase();
-        if (!selectedTags.includes(tag)) selectedTags.push(tag);
-        tagInput.value = "";
-        renderSelectedTags();
-        tagSuggestionsBox.classList.add("hidden");
-      }
-    });
-
-    tagInput.addEventListener("input", filterTagSuggestions);
 
     function filterTagSuggestions() {
       const input = tagInput.value.toLowerCase();
@@ -151,10 +139,10 @@
       tagSuggestionsBox.classList.toggle("hidden", suggestions.length === 0);
     }
 
-    window.filterNotes = function () {
+    function filterNotes() {
       const filter = filterInput.value.toLowerCase();
       renderNotes(filter);
-    };
+    }
 
     async function loadNotes() {
       notesList.innerHTML = "";
@@ -181,17 +169,20 @@
           <div class="mb-2">${tagChips}</div>
           <textarea id="${textareaId}" class="w-full p-2 border rounded mb-2 resize-none overflow-hidden" readonly oninput="autoResize(this)" style="height:auto;">${note.text}</textarea>
           <div class="flex justify-end space-x-2">
-            <button id="${saveBtnId}" onclick="editNote('${note.id}', '${textareaId}', '${saveBtnId}')" class="text-blue-600 hover:text-blue-800 text-sm">Edit</button>
-            <button onclick="deleteNote('${note.id}')" class="text-red-500 hover:text-red-700 text-sm">Delete</button>
+            <button id="${saveBtnId}" class="text-blue-600 hover:text-blue-800 text-sm">Edit</button>
+            <button class="text-red-500 hover:text-red-700 text-sm">Delete</button>
           </div>
         `;
 
         notesList.appendChild(li);
+
+        document.getElementById(saveBtnId).onclick = () => editNote(note.id, textareaId, saveBtnId);
+        li.querySelector(".text-red-500").onclick = () => deleteNote(note.id);
         setTimeout(() => autoResize(document.getElementById(textareaId)), 0);
       });
     }
 
-    window.downloadExcel = function () {
+    function downloadExcel() {
       let csvContent = "data:text/csv;charset=utf-8,Tags,Note\n";
       allNotes.forEach(note => {
         csvContent += `"${(note.tags || []).join(', ')}","${note.text.replace(/"/g, '""')}"\n`;
@@ -203,9 +194,25 @@
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    };
+    }
 
-    window.onload = loadNotes;
+    tagInput.addEventListener("input", filterTagSuggestions);
+    tagInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && tagInput.value.trim()) {
+        e.preventDefault();
+        const tag = tagInput.value.trim().toLowerCase();
+        if (!selectedTags.includes(tag)) selectedTags.push(tag);
+        tagInput.value = "";
+        renderSelectedTags();
+        tagSuggestionsBox.classList.add("hidden");
+      }
+    });
+
+    document.getElementById("addNoteBtn").addEventListener("click", addNote);
+    document.getElementById("filterInput").addEventListener("input", filterNotes);
+    document.getElementById("downloadBtn").addEventListener("click", downloadExcel);
+
+    window.addEventListener("load", loadNotes);
   </script>
 </body>
 </html>
