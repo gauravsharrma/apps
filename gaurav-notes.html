@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Notes App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Merriweather', serif;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
+  <div class="bg-white shadow-lg rounded-lg p-6 max-w-xl w-full">
+    <h1 class="text-2xl font-bold mb-4 text-center">📝 My Notes</h1>
+    
+    <div class="flex mb-4">
+      <input id="noteInput" class="flex-grow border border-gray-300 p-2 rounded-l" placeholder="Write a note..." />
+      <button onclick="addNote()" class="bg-blue-600 text-white px-4 py-2 rounded-r hover:bg-blue-700">Add</button>
+    </div>
+    
+    <ul id="notesList" class="space-y-2"></ul>
+  </div>
+
+  <script type="module">
+    // ✅ Replace this config block with your own from Firebase Console
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    // Firebase SDKs
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const notesCollection = collection(db, "notes");
+
+    const noteInput = document.getElementById("noteInput");
+    const notesList = document.getElementById("notesList");
+
+    async function loadNotes() {
+      notesList.innerHTML = "";
+      const snapshot = await getDocs(notesCollection);
+      snapshot.forEach(docSnap => {
+        const note = docSnap.data();
+        const li = document.createElement("li");
+        li.className = "flex justify-between items-center bg-gray-50 px-4 py-2 rounded border";
+
+        li.innerHTML = `
+          <span class="text-gray-800">${note.text}</span>
+          <button onclick="deleteNote('${docSnap.id}')" class="text-red-500 hover:text-red-700 text-sm">🗑️ Delete</button>
+        `;
+
+        notesList.appendChild(li);
+      });
+    }
+
+    async function addNote() {
+      const text = noteInput.value.trim();
+      if (!text) return;
+      await addDoc(notesCollection, { text });
+      noteInput.value = "";
+      await loadNotes();
+    }
+
+    window.deleteNote = async function(id) {
+      await deleteDoc(doc(db, "notes", id));
+      await loadNotes();
+    };
+
+    window.onload = loadNotes;
+  </script>
+</body>
+</html>
