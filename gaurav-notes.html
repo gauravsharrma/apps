@@ -110,13 +110,23 @@
 
     async function addNote() {
       const text = noteInput.value.trim();
-      if (!text || selectedTags.length === 0) return;
-      await addDoc(notesCollection, { text, tags: selectedTags });
-      noteInput.value = "";
-      selectedTags = [];
-      renderSelectedTags();
-      await loadNotes();
+      if (!text || selectedTags.length === 0) {
+        alert("Please enter a note and at least one tag.");
+        return;
+      }
+    
+      try {
+        await addDoc(notesCollection, { text, tags: selectedTags });
+        noteInput.value = "";
+        selectedTags = [];
+        renderSelectedTags();
+        await loadNotes();
+      } catch (error) {
+        console.error("❌ Error adding note:", error);
+        alert("Failed to add note: " + error.message);
+      }
     }
+
 
     async function deleteNote(id) {
       await deleteDoc(doc(db, "notes", id));
