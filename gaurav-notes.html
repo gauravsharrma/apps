@@ -3,15 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Notes with 333</title>
+  <title>Multi-Tag Notes 454545</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Merriweather&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Merriweather', serif;
-    }
-    textarea {
-      vertical-align: top;
     }
     .tag-chip {
       background-color: #e5e7eb;
@@ -28,22 +25,20 @@
 
     <div class="mb-4">
       <div class="relative">
-        <input id="tagInput" class="w-full border border-gray-300 p-2 rounded mb-2" placeholder="Type a tag and press Enter..." />
+        <input id="tagInput" class="w-full border border-gray-300 p-2 rounded mb-2" placeholder="Type a tag and press Enter...">
         <div id="tagSuggestions" class="absolute z-10 bg-white border w-full rounded shadow max-h-40 overflow-y-auto hidden"></div>
       </div>
       <div id="selectedTags" class="flex flex-wrap mb-2"></div>
-      <textarea id="noteInput" class="w-full border border-gray-300 p-2 rounded h-24 resize-none overflow-hidden" placeholder="Write a note..." oninput="autoResize(this)"></textarea>
+      <textarea id="noteInput" class="w-full border border-gray-300 p-2 rounded h-24 resize-none overflow-hidden" placeholder="Write a note..."></textarea>
       <button id="addNoteBtn" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add Note</button>
     </div>
 
     <div class="mb-4">
-      <input id="filterInput" class="w-full border border-gray-300 p-2 rounded" placeholder="Filter by tag..." />
+      <input id="filterInput" class="w-full border border-gray-300 p-2 rounded" placeholder="Filter by tag...">
     </div>
 
     <ul id="notesList" class="space-y-3 mb-4"></ul>
-
     <button id="downloadBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Download as Excel</button>
-
   </div>
 
   <script type="module">
@@ -74,43 +69,9 @@
     let selectedTags = [];
     let allTags = new Set();
 
-    // Make autoResize globally accessible for inline HTML usage
     function autoResize(textarea) {
       textarea.style.height = "auto";
       textarea.style.height = textarea.scrollHeight + "px";
-    }
-    window.autoResize = autoResize;
-
-
-    async function addNote() {
-      const text = noteInput.value.trim();
-      if (!text || selectedTags.length === 0) return;
-      await addDoc(notesCollection, { text, tags: selectedTags });
-      noteInput.value = "";
-      selectedTags = [];
-      renderSelectedTags();
-      await loadNotes();
-    }
-
-    async function deleteNote(id) {
-      await deleteDoc(doc(db, "notes", id));
-      await loadNotes();
-    }
-
-    async function editNote(id, textareaId, saveButtonId) {
-      const textarea = document.getElementById(textareaId);
-      const button = document.getElementById(saveButtonId);
-      if (textarea.readOnly) {
-        textarea.readOnly = false;
-        button.innerText = "Save";
-        textarea.focus();
-        autoResize(textarea);
-      } else {
-        await updateDoc(doc(db, "notes", id), { text: textarea.value });
-        textarea.readOnly = true;
-        button.innerText = "Edit";
-        autoResize(textarea);
-      }
     }
 
     function renderSelectedTags() {
@@ -147,10 +108,40 @@
       renderNotes(filter);
     }
 
+    async function addNote() {
+      const text = noteInput.value.trim();
+      if (!text || selectedTags.length === 0) return;
+      await addDoc(notesCollection, { text, tags: selectedTags });
+      noteInput.value = "";
+      selectedTags = [];
+      renderSelectedTags();
+      await loadNotes();
+    }
+
+    async function deleteNote(id) {
+      await deleteDoc(doc(db, "notes", id));
+      await loadNotes();
+    }
+
+    async function editNote(id, textareaId, saveBtnId) {
+      const textarea = document.getElementById(textareaId);
+      const button = document.getElementById(saveBtnId);
+      if (textarea.readOnly) {
+        textarea.readOnly = false;
+        button.innerText = "Save";
+        textarea.focus();
+        autoResize(textarea);
+      } else {
+        await updateDoc(doc(db, "notes", id), { text: textarea.value });
+        textarea.readOnly = true;
+        button.innerText = "Edit";
+        autoResize(textarea);
+      }
+    }
+
     async function loadNotes() {
-      notesList.innerHTML = "";
       const snapshot = await getDocs(notesCollection);
-      allNotes = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+      allNotes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       allTags = new Set(allNotes.flatMap(note => Array.isArray(note.tags) ? note.tags : []));
       renderNotes();
     }
@@ -158,27 +149,21 @@
     function renderNotes(filter = "") {
       notesList.innerHTML = "";
       const filteredNotes = allNotes.filter(n => Array.isArray(n.tags) && n.tags.some(tag => tag.includes(filter)));
-
       filteredNotes.forEach(note => {
         const textareaId = `note-${note.id}`;
         const saveBtnId = `btn-${note.id}`;
-
         const li = document.createElement("li");
         li.className = "bg-gray-50 p-3 rounded border";
-
         const tagChips = (note.tags || []).map(t => `<span class='tag-chip text-sm'>${t}</span>`).join(" ");
-
         li.innerHTML = `
           <div class="mb-2">${tagChips}</div>
-          <textarea id="${textareaId}" class="w-full p-2 border rounded mb-2 resize-none overflow-hidden" readonly oninput="autoResize(this)" style="height:auto;">${note.text}</textarea>
+          <textarea id="${textareaId}" class="w-full p-2 border rounded mb-2 resize-none overflow-hidden" readonly style="height:auto;">${note.text}</textarea>
           <div class="flex justify-end space-x-2">
             <button id="${saveBtnId}" class="text-blue-600 hover:text-blue-800 text-sm">Edit</button>
             <button class="text-red-500 hover:text-red-700 text-sm">Delete</button>
           </div>
         `;
-
         notesList.appendChild(li);
-
         document.getElementById(saveBtnId).onclick = () => editNote(note.id, textareaId, saveBtnId);
         li.querySelector(".text-red-500").onclick = () => deleteNote(note.id);
         setTimeout(() => autoResize(document.getElementById(textareaId)), 0);
@@ -214,7 +199,6 @@
     document.getElementById("addNoteBtn").addEventListener("click", addNote);
     document.getElementById("filterInput").addEventListener("input", filterNotes);
     document.getElementById("downloadBtn").addEventListener("click", downloadExcel);
-
     window.addEventListener("load", loadNotes);
   </script>
 </body>
