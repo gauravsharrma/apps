@@ -16,34 +16,40 @@
     }
   </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-start justify-center p-6">
-  <div class="bg-white shadow-lg rounded-lg p-6 max-w-2xl w-full">
-    <!-- Tabs -->
-    <div id="tabs" class="flex flex-wrap gap-2 mb-4"></div>
+<body class="bg-gray-100 min-h-screen flex items-start p-6">
 
-    <!-- Pagination -->
-    <div class="flex justify-between items-center mb-4">
-      <button onclick="prevRow()" class="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded" id="prevBtn">Previous</button>
-      <span id="counter" class="text-sm text-gray-600"></span>
-      <button onclick="nextRow()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded" id="nextBtn">Next</button>
+  <div class="flex w-full max-w-7xl bg-white rounded-lg shadow-lg overflow-hidden">
+    
+    <!-- Sidebar: Tabs -->
+    <div class="w-1/4 border-r p-4 bg-gray-50">
+      <h2 class="text-lg font-semibold text-gray-700 mb-4">Sheets</h2>
+      <div id="tabs" class="flex flex-col gap-2"></div>
     </div>
 
-    <!-- Data Display -->
-    <div id="data"></div>
+    <!-- Main Content -->
+    <div class="w-3/4 p-6">
+      <!-- Pagination Controls -->
+      <div class="flex justify-between items-center mb-4">
+        <button onclick="prevRow()" class="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded" id="prevBtn">Previous</button>
+        <span id="counter" class="text-sm text-gray-600"></span>
+        <button onclick="nextRow()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded" id="nextBtn">Next</button>
+      </div>
+
+      <!-- Data Display -->
+      <div id="data"></div>
+    </div>
   </div>
 
   <script>
-    const sheetID = '1h1hM0o-tS1tf57rhfCnCvGZmM0TaMegsYvvE5WxcTfA'; // 🔁 Replace with your real sheet ID
+    const sheetID = '1h1hM0o-tS1tf57rhfCnCvGZmM0TaMegsYvvE5WxcTfA';
+    const apiKey = 'AIzaSyD5SHVtMFbCBYd9k04s705o3GgV5Om7e2Q';
     let sheetData = [];
     let currentIndex = 0;
     let sheetNames = [];
     let currentSheet = '';
 
-    // Get sheet names dynamically
     async function getSheetNames() {
-      const apiKey = 'AIzaSyD5SHVtMFbCBYd9k04s705o3GgV5Om7e2Q'; // ✅ Replace this
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetID}?fields=sheets.properties.title&key=${apiKey}`;
-    
       try {
         const res = await fetch(url);
         const data = await res.json();
@@ -57,14 +63,13 @@
       }
     }
 
-
     function createTabs() {
       const tabsContainer = document.getElementById('tabs');
       tabsContainer.innerHTML = '';
       sheetNames.forEach(sheet => {
         const btn = document.createElement('button');
         btn.textContent = sheet;
-        btn.className = 'tab-button bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded';
+        btn.className = 'tab-button bg-white text-left hover:bg-indigo-100 px-3 py-2 rounded';
         btn.onclick = () => {
           currentSheet = sheet;
           currentIndex = 0;
@@ -139,7 +144,6 @@
       }
     }
 
-    // Load everything
     getSheetNames();
   </script>
 </body>
