@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Notes App2</title>
+  <title>My Notes App</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Merriweather&display=swap" rel="stylesheet">
   <style>
@@ -20,7 +20,7 @@
     <h1 class="text-2xl font-bold mb-4 text-center">📝 My Notes</h1>
     
     <div class="mb-4">
-      <textarea id="noteInput" class="w-full border border-gray-300 p-2 rounded h-24" placeholder="Write a note..."></textarea>
+      <textarea id="noteInput" class="w-full border border-gray-300 p-2 rounded h-24 resize-none overflow-hidden" placeholder="Write a note..." oninput="autoResize(this)"></textarea>
       <button onclick="addNote()" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add Note</button>
     </div>
     
@@ -28,12 +28,12 @@
   </div>
 
   <script type="module">
-    // ✅ Replace this config block with your actual Firebase config
+    // ✅ Replace this with your actual Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyCnpFZqYly4Z5AVpXLuRdpjQSKKMN6QqDs",
       authDomain: "gauravnotes-60f15.firebaseapp.com",
       projectId: "gauravnotes-60f15",
-      storageBucket: "gauravnotes-60f15.firebasestorage.app",
+      storageBucket: "gauravnotes-60f15.appspot.com",
       messagingSenderId: "591059791118",
       appId: "1:591059791118:web:72cac315b3907a6499bb5f"
     };
@@ -48,11 +48,17 @@
     const noteInput = document.getElementById("noteInput");
     const notesList = document.getElementById("notesList");
 
+    window.autoResize = function (textarea) {
+      textarea.style.height = "auto";
+      textarea.style.height = textarea.scrollHeight + "px";
+    };
+
     window.addNote = async function () {
       const text = noteInput.value.trim();
       if (!text) return;
       await addDoc(notesCollection, { text });
       noteInput.value = "";
+      autoResize(noteInput);
       await loadNotes();
     };
 
@@ -68,10 +74,12 @@
         textarea.readOnly = false;
         button.innerText = "Save";
         textarea.focus();
+        autoResize(textarea);
       } else {
         await updateDoc(doc(db, "notes", id), { text: textarea.value });
         textarea.readOnly = true;
         button.innerText = "Edit";
+        autoResize(textarea);
       }
     };
 
@@ -88,7 +96,13 @@
         li.className = "bg-gray-50 p-3 rounded border";
 
         li.innerHTML = `
-          <textarea id="${textareaId}" class="w-full p-2 border rounded mb-2 resize-none" rows="3" readonly>${note.text}</textarea>
+          <textarea 
+            id="${textareaId}" 
+            class="w-full p-2 border rounded mb-2 resize-none overflow-hidden" 
+            readonly 
+            oninput="autoResize(this)"
+            style="height:auto;"
+          >${note.text}</textarea>
           <div class="flex justify-end space-x-2">
             <button id="${saveBtnId}" onclick="editNote('${noteId}', '${textareaId}', '${saveBtnId}')" class="text-blue-600 hover:text-blue-800 text-sm">Edit</button>
             <button onclick="deleteNote('${noteId}')" class="text-red-500 hover:text-red-700 text-sm">Delete</button>
@@ -96,6 +110,7 @@
         `;
 
         notesList.appendChild(li);
+        setTimeout(() => autoResize(document.getElementById(textareaId)), 0);
       });
     }
 
