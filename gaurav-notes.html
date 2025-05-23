@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Multi-Tag Notes7</title>
+  <title>Multi-Tag Notes6</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Merriweather&display=swap" rel="stylesheet">
@@ -122,20 +122,19 @@
       const filter = filterInput.value.toLowerCase();
       renderNotes(filter);
     }
-
-
+    
     function renderNotes(filter = "") {
       notesList.innerHTML = "";
       const filteredNotes = allNotes.filter(n => Array.isArray(n.tags) && n.tags.some(tag => tag.includes(filter)));
       filteredNotes.forEach(note => {
-        const textareaId = `note-${note.id}`;
         const saveBtnId = `btn-${note.id}`;
         const li = document.createElement("li");
         li.className = "bg-gray-50 p-3 rounded border";
         const tagChips = (note.tags || []).map(t => `<span class='tag-chip text-sm'>${t}</span>`).join(" ");
+        const previewText = note.text.split("\n").slice(0, 2).join(" ").substring(0, 200);
         li.innerHTML = `
           <div class="mb-2">${tagChips}</div>
-          <textarea id="${textareaId}" class="w-full p-2 border rounded mb-2 resize-none overflow-hidden" readonly style="height:auto;">${note.text}</textarea>
+          <p class="text-sm text-gray-700 mb-2">${previewText}${note.text.length > 200 ? '...' : ''}</p>
           <div class="flex flex-wrap gap-2 justify-end">
             <button id="${saveBtnId}" class="text-blue-600 hover:text-blue-800 text-sm">Edit</button>
             <button class="text-red-500 hover:text-red-700 text-sm" onclick="deleteNote('${note.id}')">Delete</button>
@@ -144,8 +143,7 @@
           </div>
         `;
         notesList.appendChild(li);
-        document.getElementById(saveBtnId).onclick = () => editNote(note.id, textareaId, saveBtnId);
-        setTimeout(() => autoResize(document.getElementById(textareaId)), 0);
+        document.getElementById(saveBtnId).onclick = () => editNote(note.id, `note-${note.id}`, saveBtnId);
       });
     }
 
