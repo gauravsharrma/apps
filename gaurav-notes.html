@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Multi-Tag Notes8</title>
+  <title>Multi-Tag Notes7</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Merriweather&display=swap" rel="stylesheet">
@@ -149,12 +149,16 @@
       });
     }
 
+    
+    // Sanitize markdown before rendering in viewMarkdown
     function viewMarkdown(mdText) {
-      const html = marked.parse(mdText);
+      const safeText = mdText.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const html = marked.parse(safeText);
       const newTab = window.open();
       newTab.document.write(`<!DOCTYPE html><html><head><title>Markdown</title><link href='https://cdn.jsdelivr.net/npm/github-markdown-css@5.1.0/github-markdown.min.css' rel='stylesheet'><style>body{padding:2rem;}</style></head><body class='markdown-body'>${html}</body></html>`);
       newTab.document.close();
     }
+
 
     function copyMarkdown(mdText) {
       navigator.clipboard.writeText(mdText).then(() => {
