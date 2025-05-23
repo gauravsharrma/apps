@@ -3,15 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LLM Prompt Builder</title>
+  <title>LLM Prompt Builder1</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer>
-    let parameters = [];
+    const parameters = [
+      { "Parameter": "temperature", "Target": "Low (0.0)", "Prompt Style": "Give a fact-based, precise, and to-the-point explanation of [INPUT]. No analogies or opinions." },
+      { "Parameter": "temperature", "Target": "Medium (0.7)", "Prompt Style": "Explain [INPUT] in simple language. Use analogies to help a non-technical person understand." },
+      { "Parameter": "temperature", "Target": "High (1.2)", "Prompt Style": "Describe [INPUT] as if you're writing a sci-fi scene or children's story. Be expressive and use metaphor." },
+      { "Parameter": "top_p", "Target": "Low (0.1)", "Prompt Style": "Use only the most common and direct words to explain [INPUT]." },
+      { "Parameter": "top_p", "Target": "Medium (0.5)", "Prompt Style": "Explain [INPUT] in a balanced tone using clear and varied expressions." },
+      { "Parameter": "top_p", "Target": "High (1.0)", "Prompt Style": "Describe [INPUT] with expressive, poetic, or unexpected word choices. Surprise me." },
+      { "Parameter": "top_k", "Target": "Low (10)", "Prompt Style": "Keep the language extremely simple and predictable when explaining [INPUT]." },
+      { "Parameter": "top_k", "Target": "Medium (100)", "Prompt Style": "Use clear language to explain [INPUT] but allow for some creative freedom." },
+      { "Parameter": "top_k", "Target": "High (1000)", "Prompt Style": "Use rich, diverse vocabulary and unexpected phrases to describe [INPUT]." },
+      { "Parameter": "max_tokens", "Target": "Low (10–30)", "Prompt Style": "Respond with a one-line summary of [INPUT]. Keep it under 10 words." },
+      { "Parameter": "max_tokens", "Target": "Medium (100–300)", "Prompt Style": "Provide a brief explanation of [INPUT] in 2–3 short paragraphs." },
+      { "Parameter": "max_tokens", "Target": "High (1000+)", "Prompt Style": "Write a detailed and comprehensive guide covering all aspects of [INPUT], including examples and context." }
+    ];
+
     let grouped = {};
 
-    async function loadData() {
-      const response = await fetch('llm_prompt_simulation_parameters.json');
-      parameters = await response.json();
+    window.onload = () => {
       grouped = parameters.reduce((acc, obj) => {
         acc[obj.Parameter] = acc[obj.Parameter] || [];
         acc[obj.Parameter].push(obj);
@@ -34,7 +46,7 @@
         select.name = param;
         grouped[param].forEach(opt => {
           const option = document.createElement('option');
-          option.value = opt.PromptStyle;
+          option.value = opt['Prompt Style'];
           option.textContent = opt.Target;
           select.appendChild(option);
         });
@@ -45,16 +57,17 @@
     }
 
     function generatePrompt() {
-      const inputTopic = document.getElementById('inputTopic').value;
+      const inputTopic = document.getElementById('inputTopic').value.trim();
       const selects = document.querySelectorAll('#param-selectors select');
-      let promptParts = [];
+      const promptParts = [];
       selects.forEach(select => {
-        promptParts.push(select.value.replace('[INPUT]', inputTopic));
+        const selectedValue = select.value;
+        if (selectedValue && inputTopic) {
+          promptParts.push(selectedValue.replace('[INPUT]', inputTopic));
+        }
       });
       document.getElementById('outputPrompt').value = promptParts.join(' ');
     }
-
-    window.onload = loadData;
   </script>
 </head>
 <body class="bg-gray-50 p-6 font-sans">
