@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Tags</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
+  <div class="bg-white shadow-lg rounded-lg p-6 max-w-md w-full">
+    <h1 class="text-2xl font-bold mb-4 text-center">➕ Create New Tag</h1>
+    <input id="newTagInput" type="text" placeholder="Enter new tag..." class="w-full border border-gray-300 p-2 rounded mb-4">
+    <button id="createTagBtn" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Create Tag</button>
+    <p id="statusMsg" class="text-sm text-center mt-4 text-green-600 hidden"></p>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getFirestore, doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCnpFZqYly4Z5AVpXLuRdpjQSKKMN6QqDs",
+      authDomain: "gauravnotes-60f15.firebaseapp.com",
+      projectId: "gauravnotes-60f15",
+      storageBucket: "gauravnotes-60f15.appspot.com",
+      messagingSenderId: "591059791118",
+      appId: "1:591059791118:web:72cac315b3907a6499bb5f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const newTagInput = document.getElementById('newTagInput');
+    const createTagBtn = document.getElementById('createTagBtn');
+    const statusMsg = document.getElementById('statusMsg');
+
+    createTagBtn.addEventListener('click', async () => {
+      const tag = newTagInput.value.trim().toLowerCase();
+      if (!tag) {
+        statusMsg.innerText = 'Tag cannot be empty.';
+        statusMsg.classList.remove('text-green-600');
+        statusMsg.classList.add('text-red-600');
+        statusMsg.classList.remove('hidden');
+        return;
+      }
+
+      try {
+        await setDoc(doc(db, 'tags', tag), { name: tag, createdAt: new Date() });
+        newTagInput.value = '';
+        statusMsg.innerText = `Tag "${tag}" created successfully.`;
+        statusMsg.classList.remove('text-red-600');
+        statusMsg.classList.add('text-green-600');
+        statusMsg.classList.remove('hidden');
+      } catch (error) {
+        console.error('Error creating tag:', error);
+        statusMsg.innerText = 'Failed to create tag.';
+        statusMsg.classList.remove('text-green-600');
+        statusMsg.classList.add('text-red-600');
+        statusMsg.classList.remove('hidden');
+      }
+    });
+  </script>
+</body>
+</html>
