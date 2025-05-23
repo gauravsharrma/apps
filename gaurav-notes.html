@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Multi-Tag Notes6</title>
+  <title>Multi-Tag Notes5</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Merriweather&display=swap" rel="stylesheet">
@@ -117,12 +117,11 @@
       renderNotes();
     }
 
-    // Add this missing function to fix filterNotes error
     function filterNotes() {
       const filter = filterInput.value.toLowerCase();
       renderNotes(filter);
     }
-    
+
     function renderNotes(filter = "") {
       notesList.innerHTML = "";
       const filteredNotes = allNotes.filter(n => Array.isArray(n.tags) && n.tags.some(tag => tag.includes(filter)));
@@ -147,8 +146,33 @@
       });
     }
 
-    
-    // Sanitize markdown before rendering in viewMarkdown
+    async function deleteNote(id) {
+      await deleteDoc(doc(db, "notes", id));
+      await loadNotes();
+    }
+
+    async function editNote(id, textareaId, saveBtnId) {
+      const textarea = document.getElementById(textareaId);
+      const button = document.getElementById(saveBtnId);
+      if (!textarea) {
+        console.warn("Textarea not found for note ID:", id);
+        return;
+      }
+      if (textarea.readOnly) {
+        textarea.readOnly = false;
+        button.innerText = "Save";
+        textarea.focus();
+        textarea.style.height = "auto";
+        textarea.style.height = textarea.scrollHeight + "px";
+      } else {
+        await updateDoc(doc(db, "notes", id), { text: textarea.value });
+        textarea.readOnly = true;
+        button.innerText = "Edit";
+        textarea.style.height = "auto";
+        textarea.style.height = textarea.scrollHeight + "px";
+      }
+    }
+
     function viewMarkdown(mdText) {
       const safeText = mdText.replace(/</g, "&lt;").replace(/>/g, "&gt;");
       const html = marked.parse(safeText);
@@ -156,7 +180,6 @@
       newTab.document.write(`<!DOCTYPE html><html><head><title>Markdown</title><link href='https://cdn.jsdelivr.net/npm/github-markdown-css@5.1.0/github-markdown.min.css' rel='stylesheet'><style>body{padding:2rem;}</style></head><body class='markdown-body'>${html}</body></html>`);
       newTab.document.close();
     }
-
 
     function copyMarkdown(mdText) {
       navigator.clipboard.writeText(mdText).then(() => {
@@ -179,27 +202,6 @@
       } catch (error) {
         console.error("❌ Error adding note:", error);
         alert("Failed to add note: " + error.message);
-      }
-    }
-
-    async function deleteNote(id) {
-      await deleteDoc(doc(db, "notes", id));
-      await loadNotes();
-    }
-
-    async function editNote(id, textareaId, saveBtnId) {
-      const textarea = document.getElementById(textareaId);
-      const button = document.getElementById(saveBtnId);
-      if (textarea.readOnly) {
-        textarea.readOnly = false;
-        button.innerText = "Save";
-        textarea.focus();
-        autoResize(textarea);
-      } else {
-        await updateDoc(doc(db, "notes", id), { text: textarea.value });
-        textarea.readOnly = true;
-        button.innerText = "Edit";
-        autoResize(textarea);
       }
     }
 
