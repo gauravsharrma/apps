@@ -206,6 +206,25 @@
       }
     });
 
+    // Add below loadNotes():
+    async function loadAllTagsFromCollection() {
+      const tagsSnap = await getDocs(collection(db, "tags"));
+      tagsSnap.forEach(doc => {
+        const tagName = doc.data().name;
+        if (tagName && !allTags.has(tagName)) allTags.add(tagName);
+      });
+    }
+    
+    // Update loadNotes():
+    async function loadNotes() {
+      const snapshot = await getDocs(notesCollection);
+      allNotes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      allTags = new Set(allNotes.flatMap(note => Array.isArray(note.tags) ? note.tags : []));
+      await loadAllTagsFromCollection();
+      renderNotes();
+    }
+
+
     document.getElementById("addNoteBtn").addEventListener("click", addNote);
     document.getElementById("filterInput").addEventListener("input", filterNotes);
     document.getElementById("downloadBtn").addEventListener("click", downloadExcel);
