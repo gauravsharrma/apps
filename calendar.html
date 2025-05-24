@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Printable Weekly Calendar</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Merriweather', serif;
+    }
+    .note-line {
+      border-bottom: 1px dashed #ccc;
+      height: 16px;
+    }
+    @media print {
+      .page-break {
+        page-break-after: always;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 p-6 min-h-screen">
+  <div class="max-w-5xl mx-auto bg-white p-6 rounded-lg shadow-md">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+      <div class="flex gap-4">
+        <select id="monthSelect" class="border p-2 rounded">
+          <script>
+            const months = ["January", "February", "March", "April", "May", "June", 
+                            "July", "August", "September", "October", "November", "December"];
+            document.write(months.map((m, i) =>
+              `<option value="${i}">${m}</option>`).join(''));
+          </script>
+        </select>
+        <select id="yearSelect" class="border p-2 rounded">
+          <script>
+            const year = new Date().getFullYear();
+            for (let y = year - 5; y <= year + 5; y++) {
+              document.write(`<option value="${y}" ${y === year ? 'selected' : ''}>${y}</option>`);
+            }
+          </script>
+        </select>
+      </div>
+      <button onclick="generatePrintableCalendar()" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">
+        Print or Export PDF
+      </button>
+    </div>
+    <div id="calendarContent"></div>
+  </div>
+
+  <script>
+    const calendarContent = document.getElementById('calendarContent');
+    const monthSelect = document.getElementById('monthSelect');
+    const yearSelect = document.getElementById('yearSelect');
+
+    function generateDays(year, month) {
+      const days = [];
+      const date = new Date(year, month, 1);
+      while (date.getMonth() === month) {
+        days.push({
+          date: date.getDate(),
+          day: date.toLocaleString('en-us', { weekday: 'long' }),
+        });
+        date.setDate(date.getDate() + 1);
+      }
+      return days;
+    }
+
+    function renderCalendar() {
+      const month = parseInt(monthSelect.value);
+      const year = parseInt(yearSelect.value);
+      const days = generateDays(year, month);
+      calendarContent.innerHTML = '';
+
+      for (let i = 0; i < days.length; i += 8) {
+        const pageDays = days.slice(i, i + 8);
+        const table = document.createElement('div');
+        table.className = 'mb-12 page-break';
+
+        table.innerHTML = `
+          <h2 class="text-center text-2xl font-bold mb-4">Weekly Calendar – ${months[month]} ${year}</h2>
+          <table class="w-full border border-gray-400 table-fixed">
+            <thead class="bg-gray-200">
+              <tr>
+                <th class="w-1/12 border p-2">Date</th>
+                <th class="w-2/12 border p-2">Day</th>
+                <th class="w-9/12 border p-2">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${pageDays.map(day => `
+                <tr class="border-t">
+                  <td class="border p-2 text-center">${day.date}</td>
+                  <td class="border p-2 text-center">${day.day}</td>
+                  <td class="border p-2">
+                    <div class="note-line"></div>
+                    <div class="note-line"></div>
+                    <div class="note-line"></div>
+                    <div class="note-line"></div>
+                    <div class="note-line"></div>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+
+        calendarContent.appendChild(table);
+      }
+    }
+
+    function generatePrintableCalendar() {
+      const month = parseInt(monthSelect.value);
+      const year = parseInt(yearSelect.value);
+      const days = generateDays(year, month);
+      const pages = [];
+
+      for (let i = 0; i < days.length; i += 8) {
+        const pageDays = days.slice(i, i + 8);
+        pages.push(`
+          <h2 style="text-align:center; font-size:24px; margin-bottom:20px;">Weekly Calendar – ${months[month]} ${year}</h2>
+          <table style="width:100%; border-collapse:collapse; margin-bottom:40px;">
+            <thead>
+              <tr style="background:#f3f4f6;">
+                <th style="width:10%; border:1px solid #ccc; padding:8px;">Date</th>
+                <th style="width:20%; border:1px solid #ccc; padding:8px;">Day</th>
+                <th style="width:70%; border:1px solid #ccc; padding:8px;">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${pageDays.map(day => `
+                <tr>
+                  <td style="border:1px solid #ccc; padding:8px; text-align:center;">${day.date}</td>
+                  <td style="border:1px solid #ccc; padding:8px; text-align:center;">${day.day}</td>
+                  <td style="border:1px solid #ccc; padding:8px;">
+                    <div style="border-bottom:1px dashed #ccc; height:16px;"></div>
+                    <div style="border-bottom:1px dashed #ccc; height:16px;"></div>
+                    <div style="border-bottom:1px dashed #ccc; height:16px;"></div>
+                    <div style="border-bottom:1px dashed #ccc; height:16px;"></div>
+                    <div style="border-bottom:1px dashed #ccc; height:16px;"></div>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <div style="page-break-after:always;"></div>
+        `);
+      }
+
+      const win = window.open('', '_blank');
+      const html = `
+        <html>
+          <head>
+            <title>Printable Calendar</title>
+            <link href="https://fonts.googleapis.com/css2?family=Merriweather&display=swap" rel="stylesheet">
+            <style>
+              body { font-family: 'Merriweather', serif; padding: 40px; }
+              @media print {
+                button { display: none; }
+              }
+            </style>
+          </head>
+          <body>
+            ${pages.join('')}
+            <button onclick="window.print()" style="margin: 40px auto; display:block; background:#2563eb; color:white; padding:10px 20px; border:none; border-radius:8px; font-size:16px;">Print</button>
+          </body>
+        </html>
+      `;
+      win.document.write(html);
+      win.document.close();
+    }
+
+    monthSelect.addEventListener('change', renderCalendar);
+    yearSelect.addEventListener('change', renderCalendar);
+
+    renderCalendar();
+  </script>
+</body>
+</html>
