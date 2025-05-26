@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Notes App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Basic CSS for styling the notes app */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 28px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus,
+        textarea:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+        button {
+            width: 100%;
+            padding: 12px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 123, 255, 0.2);
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .message {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Styles for displaying notes */
+        .notes-list-container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+        .notes-list-container h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .notes-list {
+            list-style: none;
+            padding: 0;
+        }
+        .note-item {
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+        }
+        .note-item h3 {
+            margin: 0 0 10px 0;
+            color: #007bff;
+            font-size: 20px;
+        }
+        .note-item .note-content-preview {
+            max-height: 24px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            margin: 0;
+            color: #666;
+            line-height: 1.5;
+            flex-grow: 1;
+        }
+        .note-item .tags {
+            font-size: 12px;
+            color: #007bff;
+            background-color: #e6f2ff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-top: 10px;
+            display: inline-block;
+        }
+        .note-item .timestamp {
+            font-size: 12px;
+            color: #999;
+            margin-top: 10px;
+            text-align: right;
+        }
+        .note-item .actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .note-item .actions button {
+            width: auto;
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+        .note-item .actions .edit-btn {
+            background-color: #28a745;
+        }
+        .note-item .actions .edit-btn:hover {
+            background-color: #218838;
+        }
+        .note-item .actions .delete-btn {
+            background-color: #dc3545;
+        }
+        .note-item .actions .delete-btn:hover {
+            background-color: #c82333;
+        }
+        .note-item .actions .view-btn {
+            background-color: #6c757d;
+        }
+        .note-item .actions .view-btn:hover {
+            background-color: #5a6268;
+        }
+        .no-notes-message, .loading-notes-message {
+            text-align: center;
+            color: #888;
+            font-style: italic;
+        }
+        .loading-notes-message {
+            color: #007bff;
+        }
+
+        /* Styles for Autocomplete */
+        .autocomplete-container {
+            position: relative;
+        }
+        .autocomplete-items {
+            position: absolute;
+            border: 1px solid #d4d4d4;
+            border-bottom: none;
+            border-top: none;
+            z-index: 99;
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 150px;
+            overflow-y: auto;
+            background-color: #f6f6f6;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .autocomplete-items div {
+            padding: 10px;
+            cursor: pointer;
+            background-color: #fff;
+            border-bottom: 1px solid #d4d4d4;
+        }
+        .autocomplete-items div:hover {
+            background-color: #e9e9e9;
+        }
+        .autocomplete-active {
+            background-color: #007bff !important;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Save Your Notes</h1>
+        <form id="noteForm">
+            <div class="form-group">
+                <label for="noteTitle">Note Title:</label>
+                <input type="text" id="noteTitle" placeholder="e.g., Meeting Agenda" required>
+            </div>
+            <div class="form-group">
+                <label for="noteContent">Note Content:</label>
+                <textarea id="noteContent" rows="7" placeholder="Write your note details here..." required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="noteTags">Tags (comma-separated):</label>
+                <div class="autocomplete-container">
+                    <input type="text" id="noteTags" placeholder="e.g., work, urgent, idea">
+                </div>
+            </div>
+            <button type="submit" id="saveButton">Save Note to Google Sheet</button>
+            <div id="responseMessage" class="message" style="display: none;"></div>
+        </form>
+    </div>
+
+    <div class="notes-list-container">
+        <h2>Your Saved Notes</h2>
+        <div id="notesStatus" class="loading-notes-message">Loading notes...</div>
+        <ul id="notesList" class="notes-list">
+            </ul>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <script>
+        // IMPORTANT: Replace this with the Web app URL you copied from Step 3
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx8oYMOLxesP8SD_UTXbXfBOhmD45PwoM89YMxFsnEh6yKBDmXdFGQgE8hRMjJvEAEa/exec'; 
+
+        const noteForm = document.getElementById('noteForm');
+        const noteTitleInput = document.getElementById('noteTitle');
+        const noteContentInput = document.getElementById('noteContent');
+        const noteTagsInput = document.getElementById('noteTags');
+        const saveButton = document.getElementById('saveButton');
+        const responseMessageDiv = document.getElementById('responseMessage');
+        const notesList = document.getElementById('notesList');
+        const notesStatusDiv = document.getElementById('notesStatus');
+
+        let availableTags = [];
+        let editingRowNumber = null;
+
+        function displayMessage(message, type) {
+            responseMessageDiv.textContent = message;
+            responseMessageDiv.classList.add(type);
+            responseMessageDiv.style.display = 'block';
+        }
+
+        async function fetchNotes() {
+            notesList.innerHTML = '';
+            notesStatusDiv.textContent = 'Loading notes...';
+            notesStatusDiv.style.display = 'block';
+            availableTags = [];
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const notes = await response.json();
+
+                if (notes.length === 0) {
+                    notesStatusDiv.textContent = 'No notes saved yet.';
+                } else {
+                    notesStatusDiv.style.display = 'none';
+                    notes.forEach(note => {
+                        const listItem = document.createElement('li');
+                        listItem.classList.add('note-item');
+                        listItem.dataset.rowNumber = note.rowNumber;
+                        // Store full content for view feature
+                        listItem.dataset.fullContent = note['Note Content'] || '';
+
+                        const title = document.createElement('h3');
+                        title.textContent = note['Note Title'] || 'No Title';
+                        listItem.appendChild(title);
+
+                        const contentPreview = document.createElement('p');
+                        contentPreview.classList.add('note-content-preview');
+                        contentPreview.textContent = note['Note Content'] || 'No Content';
+                        listItem.appendChild(contentPreview);
+
+                        if (note.Tags) {
+                            const tagsDiv = document.createElement('div');
+                            tagsDiv.classList.add('tags');
+                            tagsDiv.textContent = 'Tags: ' + note.Tags;
+                            listItem.appendChild(tagsDiv);
+
+                            note.Tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '').forEach(tag => {
+                                if (!availableTags.includes(tag)) {
+                                    availableTags.push(tag);
+                                }
+                            });
+                        }
+
+                        const timestamp = document.createElement('div');
+                        timestamp.classList.add('timestamp');
+                        if (note.Timestamp) {
+                            try {
+                                timestamp.textContent = new Date(note.Timestamp).toLocaleString();
+                            } catch (e) {
+                                timestamp.textContent = note.Timestamp;
+                            }
+                        } else {
+                            timestamp.textContent = 'No Timestamp';
+                        }
+                        listItem.appendChild(timestamp);
+
+                        const actionsDiv = document.createElement('div');
+                        actionsDiv.classList.add('actions');
+
+                        const viewButton = document.createElement('button');
+                        viewButton.classList.add('view-btn');
+                        viewButton.textContent = 'View';
+                        // --- NEW: View Button Event Listener ---
+                        viewButton.addEventListener('click', () => {
+                            viewNote(note['Note Title'], note['Note Content']);
+                        });
+                        actionsDiv.appendChild(viewButton);
+
+                        const editButton = document.createElement('button');
+                        editButton.classList.add('edit-btn');
+                        editButton.textContent = 'Edit';
+                        editButton.addEventListener('click', () => {
+                            handleEditClick(note);
+                        });
+                        actionsDiv.appendChild(editButton);
+
+                        const deleteButton = document.createElement('button');
+                        deleteButton.classList.add('delete-btn');
+                        deleteButton.textContent = 'Delete';
+                        deleteButton.addEventListener('click', () => {
+                            handleDeleteClick(note.rowNumber);
+                        });
+                        actionsDiv.appendChild(deleteButton);
+
+                        listItem.appendChild(actionsDiv);
+                        notesList.appendChild(listItem);
+                    });
+                }
+                autocomplete(noteTagsInput, availableTags);
+
+            } catch (error) {
+                console.error('Error fetching notes:', error);
+                notesStatusDiv.textContent = 'Error loading notes. Please try again later.';
+                notesStatusDiv.classList.add('error');
+            }
+        }
+
+        // --- NEW: View Note Function ---
+        function viewNote(title, content) {
+            const newWindow = window.open('', '_blank');
+            if (!newWindow) {
+                alert('Pop-ups blocked! Please allow pop-ups for this site to view notes.');
+                return;
+            }
+
+            // Convert Markdown to HTML
+            const markdownToHtml = marked.parse(content);
+
+            // Construct the HTML for the new tab
+            const htmlContent = `
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>${title}</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+                    <style>
+                        body {
+                            font-family: 'Merriweather', serif;
+                            margin: 40px;
+                            line-height: 1.6;
+                            color: #333;
+                            max-width: 800px;
+                            margin-left: auto;
+                            margin-right: auto;
+                            background-color: #f9f9f9;
+                            padding: 20px;
+                            border-radius: 8px;
+                            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                        }
+                        h1, h2, h3, h4, h5, h6 {
+                            font-family: 'Merriweather', serif;
+                            color: #007bff;
+                            margin-top: 1em;
+                            margin-bottom: 0.5em;
+                        }
+                        pre {
+                            background-color: #eee;
+                            padding: 10px;
+                            border-radius: 5px;
+                            overflow-x: auto;
+                        }
+                        blockquote {
+                            border-left: 4px solid #ccc;
+                            padding-left: 10px;
+                            color: #666;
+                            margin-left: 0;
+                        }
+                        /* Basic Markdown styles */
+                        code {
+                            background-color: #f0f0f0;
+                            padding: 2px 4px;
+                            border-radius: 3px;
+                            font-family: 'Courier New', Courier, monospace;
+                            font-size: 0.9em;
+                        }
+                        strong { font-weight: bold; }
+                        em { font-style: italic; }
+                        ul, ol {
+                            padding-left: 20px;
+                        }
+                        li {
+                            margin-bottom: 5px;
+                        }
+                        a {
+                            color: #007bff;
+                            text-decoration: none;
+                        }
+                        a:hover {
+                            text-decoration: underline;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1>${title}</h1>
+                    <div class="note-content-rendered">
+                        ${markdownToHtml}
+                    </div>
+                </body>
+                </html>
+            `;
+
+            newWindow.document.write(htmlContent);
+            newWindow.document.close();
+        }
+
+        function handleEditClick(note) {
+            noteTitleInput.value = note['Note Title'] || '';
+            noteContentInput.value = note['Note Content'] || '';
+            noteTagsInput.value = note.Tags || '';
+            editingRowNumber = note.rowNumber;
+            saveButton.textContent = 'Update Note';
+            saveButton.style.backgroundColor = '#28a745'; // Green for update
+            saveButton.onmouseover = () => saveButton.style.backgroundColor = '#218838';
+            saveButton.onmouseout = () => saveButton.style.backgroundColor = '#28a745';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function handleDeleteClick(rowNumber) {
+            if (!confirm('Are you sure you want to delete this note?')) {
+                return;
+            }
+
+            saveButton.disabled = true;
+            responseMessageDiv.style.display = 'none';
+            responseMessageDiv.classList.remove('success', 'error');
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'DELETE',
+                    mode: 'cors', // Changed to 'cors'
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ rowNumber: rowNumber })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json(); // Read error response
+                    throw new Error(`Server error: ${errorData.message || response.statusText}`);
+                }
+                
+                const result = await response.json(); // Read success response
+                displayMessage(result.message || 'Note deleted successfully!', 'success');
+                fetchNotes();
+
+            } catch (error) {
+                console.error('Error deleting note:', error);
+                displayMessage('Failed to delete note: ' + error.message, 'error');
+            } finally {
+                saveButton.disabled = false;
+            }
+        }
+
+        noteForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); 
+
+            saveButton.disabled = true; 
+            saveButton.textContent = (editingRowNumber ? 'Updating Note...' : 'Saving Note...');
+            responseMessageDiv.style.display = 'none'; 
+            responseMessageDiv.classList.remove('success', 'error');
+
+            const noteData = {
+                title: noteTitleInput.value,
+                content: noteContentInput.value,
+                tags: noteTagsInput.value
+            };
+
+            let method = 'POST';
+            let url = SCRIPT_URL;
+            let expectedSuccessMessage = 'Note saved successfully!';
+
+            if (editingRowNumber) {
+                method = 'PUT';
+                noteData.rowNumber = editingRowNumber;
+                expectedSuccessMessage = 'Note updated successfully!';
+            }
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    mode: 'cors', // Changed to 'cors'
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(noteData)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json(); // Read error response
+                    throw new Error(`Server error: ${errorData.message || response.statusText}`);
+                }
+                
+                const result = await response.json(); // Read success response
+                displayMessage(result.message || expectedSuccessMessage, 'success');
+                
+                noteTitleInput.value = ''; 
+                noteContentInput.value = '';
+                noteTagsInput.value = ''; 
+                editingRowNumber = null;
+                saveButton.textContent = 'Save Note to Google Sheet';
+                saveButton.style.backgroundColor = '#007bff'; // Reset button color
+                saveButton.onmouseover = () => saveButton.style.backgroundColor = '#0056b3';
+                saveButton.onmouseout = () => saveButton.style.backgroundColor = '#007bff';
+
+                fetchNotes();
+
+            } catch (error) {
+                console.error('Error saving/updating note:', error);
+                displayMessage('Failed to save/update note: ' + error.message, 'error');
+            } finally {
+                saveButton.disabled = false;
+            }
+        });
+
+        // Autocomplete functionality (unchanged, but uses the updated `availableTags` from fetchNotes)
+        function autocomplete(inp, arr) {
+            var currentFocus;
+            // Ensure no duplicate event listeners by removing previous ones
+            if (inp._inputHandler) inp.removeEventListener("input", inp._inputHandler);
+            if (inp._keydownHandler) inp.removeEventListener("keydown", inp._keydownHandler);
+            if (inp._documentClickHandler) document.removeEventListener("click", inp._documentClickHandler);
+
+            inp._inputHandler = function(e) {
+                var a, b, i, val = this.value;
+                closeAllLists();
+                if (!val) { return false;}
+                currentFocus = -1;
+                a = document.createElement("DIV");
+                a.setAttribute("id", this.id + "autocomplete-list");
+                a.setAttribute("class", "autocomplete-items");
+                this.parentNode.appendChild(a);
+                for (i = 0; i < arr.length; i++) {
+                    if (arr[i].toUpperCase().includes(val.toUpperCase())) {
+                        b = document.createElement("DIV");
+                        b.innerHTML = arr[i].replace(new RegExp(val, "gi"), (match) => `<strong>${match}</strong>`);
+                        b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+                        b.addEventListener("click", function(e) {
+                            let existingTags = inp.value.split(',').map(tag => tag.trim()).filter(t => t !== '');
+                            let clickedTag = this.getElementsByTagName("input")[0].value;
+                            if (!existingTags.includes(clickedTag)) {
+                                if (inp.value.endsWith(',') || inp.value === '') {
+                                    inp.value += clickedTag;
+                                } else {
+                                    inp.value += ',' + clickedTag;
+                                }
+                            }
+                            closeAllLists();
+                            e.preventDefault(); // Prevent form submission if click is on enter
+                        });
+                        a.appendChild(b);
+                    }
+                }
+            };
+            inp.addEventListener("input", inp._inputHandler);
+
+            inp._keydownHandler = function(e) {
+                var x = document.getElementById(this.id + "autocomplete-list");
+                if (x) x = x.getElementsByTagName("div");
+                if (e.keyCode == 40) { // Arrow DOWN
+                    currentFocus++;
+                    addActive(x);
+                } else if (e.keyCode == 38) { // Arrow UP
+                    currentFocus--;
+                    addActive(x);
+                } else if (e.keyCode == 13) { // ENTER key
+                    e.preventDefault(); // Prevent form submission
+                    if (currentFocus > -1) {
+                        if (x) x[currentFocus].click();
+                    }
+                }
+            };
+            inp.addEventListener("keydown", inp._keydownHandler);
+
+            inp._documentClickHandler = function (e) {
+                closeAllLists(e.target);
+            };
+            document.addEventListener("click", inp._documentClickHandler);
+
+
+            function addActive(x) {
+                if (!x) return false;
+                removeActive(x);
+                if (currentFocus >= x.length) currentFocus = 0;
+                if (currentFocus < 0) currentFocus = (x.length - 1);
+                x[currentFocus].classList.add("autocomplete-active");
+            }
+            function removeActive(x) {
+                for (var i = 0; i < x.length; i++) {
+                    x[i].classList.remove("autocomplete-active");
+                }
+            }
+            function closeAllLists(elmnt) {
+                var x = document.getElementsByClassName("autocomplete-items");
+                for (var i = 0; i < x.length; i++) {
+                    if (elmnt != x[i] && elmnt != inp) {
+                        x[i].parentNode.removeChild(x[i]);
+                    }
+                }
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', fetchNotes);
+    </script>
+</body>
+</html>
