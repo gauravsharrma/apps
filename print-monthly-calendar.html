@@ -1,184 +1,302 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Printable Calendar</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Merriweather&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Merriweather', serif;
-    }
-    .note-line {
-      border-bottom: 1px dashed #ccc;
-      height: 16px;
-    }
-    @media print {
-      .page-break {
-        page-break-after: always;
-      }
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Printable Calendar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Merriweather', serif;
+        }
+        .note-line {
+            border-bottom: 2px solid black;
+            height: 16px; /* Keep a consistent height for each line */
+        }
+        @media print {
+            .page-break {
+                page-break-after: always;
+            }
+            /* Hide controls when printing */
+            .print-hide {
+                display: none;
+            }
+        }
+    </style>
 </head>
 <body class="bg-gray-100 p-6 min-h-screen">
-  <div class="max-w-5xl mx-auto bg-white p-6 rounded-lg shadow-md">
-    <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
-      <div class="flex gap-4">
-        <select id="monthSelect" class="border p-2 rounded"></select>
-        <select id="yearSelect" class="border p-2 rounded"></select>
-      </div>
-      <button onclick="generatePrintableCalendar()" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">
-        Print or Export PDF
-      </button>
+    <div class="max-w-5xl mx-auto bg-white p-6 rounded-lg shadow-md">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-6 print-hide">
+            <div class="flex gap-4 flex-wrap">
+                <select id="monthSelect" class="border p-2 rounded"></select>
+                <select id="yearSelect" class="border p-2 rounded"></select>
+                <select id="datesPerPageSelect" class="border p-2 rounded"></select>
+                <select id="notesPerLineSelect" class="border p-2 rounded"></select>
+                <div class="flex items-center gap-2">
+                    <label for="fromDate">From:</label>
+                    <input type="date" id="fromDate" class="border p-2 rounded" />
+                </div>
+                <div class="flex items-center gap-2">
+                    <label for="toDate">To:</label>
+                    <input type="date" id="toDate" class="border p-2 rounded" />
+                </div>
+            </div>
+            <button onclick="generatePrintableCalendar()" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">
+                Print or Export PDF
+            </button>
+        </div>
+        <div id="calendarContent"></div>
     </div>
-    <div id="calendarContent"></div>
-  </div>
 
-  <script>
-    const calendarContent = document.getElementById('calendarContent');
-    const monthSelect = document.getElementById('monthSelect');
-    const yearSelect = document.getElementById('yearSelect');
-    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    <script>
+        // Get references to DOM elements
+        const calendarContent = document.getElementById('calendarContent');
+        const monthSelect = document.getElementById('monthSelect');
+        const yearSelect = document.getElementById('yearSelect');
+        const datesPerPageSelect = document.getElementById('datesPerPageSelect');
+        const notesPerLineSelect = document.getElementById('notesPerLineSelect');
+        const fromDateInput = document.getElementById('fromDate'); // New input
+        const toDateInput = document.getElementById('toDate');     // New input
 
-    months.forEach((month, i) => {
-      const opt = document.createElement("option");
-      opt.value = i;
-      opt.textContent = month;
-      monthSelect.appendChild(opt);
-    });
+        // Array of month names
+        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-    const currentYear = new Date().getFullYear();
-    for (let y = currentYear - 5; y <= currentYear + 5; y++) {
-      const opt = document.createElement("option");
-      opt.value = y;
-      opt.textContent = y;
-      if (y === currentYear) opt.selected = true;
-      yearSelect.appendChild(opt);
-    }
-
-    function generateDays(year, month) {
-      const days = [];
-      const date = new Date(year, month, 1);
-      while (date.getMonth() === month) {
-        days.push({
-          date: date.getDate(),
-          day: date.toLocaleString('en-us', { weekday: 'long' }),
+        // Populate month dropdown
+        months.forEach((month, i) => {
+            const opt = document.createElement("option");
+            opt.value = i;
+            opt.textContent = month;
+            monthSelect.appendChild(opt);
         });
-        date.setDate(date.getDate() + 1);
-      }
-      return days;
-    }
 
-    function renderCalendar() {
-      const month = parseInt(monthSelect.value);
-      const year = parseInt(yearSelect.value);
-      const days = generateDays(year, month);
-      calendarContent.innerHTML = '';
+        // Populate year dropdown (current year +/- 5 years)
+        const currentYear = new Date().getFullYear();
+        for (let y = currentYear - 5; y <= currentYear + 5; y++) {
+            const opt = document.createElement("option");
+            opt.value = y;
+            opt.textContent = y;
+            if (y === currentYear) opt.selected = true; // Select current year by default
+            yearSelect.appendChild(opt);
+        }
 
-      for (let i = 0; i < days.length; i += 8) {
-        const pageDays = days.slice(i, i + 8);
-        const table = document.createElement('div');
-        table.className = 'mb-12 page-break';
+        // Populate dates per page dropdown (1 to 10)
+        for (let x = 1; x <= 10; x++) {
+            const opt = document.createElement("option");
+            opt.value = x;
+            opt.textContent = x;
+            if (x === 8) opt.selected = true; // Set 8 as default, matching previous behavior
+            datesPerPageSelect.appendChild(opt);
+        }
 
-        table.innerHTML = `
-          <h2 class="text-center text-2xl font-bold mb-4">${months[month]} ${year}</h2>
-          <table class="w-full border border-gray-400 table-fixed">
-            <thead class="bg-gray-200">
-              <tr>
-                <th class="w-1/12 border p-2">Date</th>
-                <th class="w-2/12 border p-2">Day</th>
-                <th class="w-9/12 border p-2">Notes</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${pageDays.map(day => `
-                <tr class="border-t">
-                  <td class="border p-2 text-center">${day.date}</td>
-                  <td class="border p-2 text-center">${day.day}</td>
-                  <td class="border p-2">
-                    <div class="note-line"></div>
-                    <div class="note-line"></div>
-                    <div class="note-line"></div>
-                    <div class="note-line"></div>
-                    <div class="note-line"></div>
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        `;
+        // Populate notes per line dropdown (1 to 20)
+        for (let n = 1; n <= 20; n++) {
+            const opt = document.createElement("option");
+            opt.value = n;
+            opt.textContent = n;
+            if (n === 5) opt.selected = true; // Set 5 as default
+            notesPerLineSelect.appendChild(opt);
+        }
 
-        calendarContent.appendChild(table);
-      }
-    }
+        /**
+         * Generates an array of day objects for a given month and year,
+         * or within a specified date range if provided.
+         * @param {number} year - The year.
+         * @param {number} month - The month (0-indexed).
+         * @param {string} [fromDateStr] - Optional start date string (YYYY-MM-DD).
+         * @param {string} [toDateStr] - Optional end date string (YYYY-MM-DD).
+         * @returns {Array<Object>} An array of day objects.
+         */
+        function generateDays(year, month, fromDateStr, toDateStr) {
+            const days = [];
+            let startDate, endDate;
 
-    function generatePrintableCalendar() {
-      const month = parseInt(monthSelect.value);
-      const year = parseInt(yearSelect.value);
-      const days = generateDays(year, month);
-      const pages = [];
+            if (fromDateStr && toDateStr) {
+                // If both from and to dates are provided, use them
+                startDate = new Date(fromDateStr + 'T00:00:00'); // Add T00:00:00 to avoid timezone issues
+                endDate = new Date(toDateStr + 'T00:00:00');
+            } else {
+                // Otherwise, generate days for the entire selected month
+                startDate = new Date(year, month, 1);
+                endDate = new Date(year, month + 1, 0); // Last day of the month
+            }
 
-      for (let i = 0; i < days.length; i += 8) {
-        const pageDays = days.slice(i, i + 8);
-        pages.push(`
-          <h2 style="text-align:center; font-size:24px; margin-bottom:20px;">${months[month]} ${year}</h2>
-          <table style="width:100%; border-collapse:collapse; margin-bottom:40px;">
-            <thead>
-              <tr style="background:#f3f4f6;">
-                <th style="width:10%; border:1px solid #ccc; padding:8px;">Date</th>
-                <th style="width:20%; border:1px solid #ccc; padding:8px;">Day</th>
-                <th style="width:70%; border:1px solid #ccc; padding:8px;">Notes</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${pageDays.map(day => `
-                <tr>
-                  <td style="border:1px solid #ccc; padding:8px; text-align:center;">${day.date}</td>
-                  <td style="border:1px solid #ccc; padding:8px; text-align:center;">${day.day}</td>
-                  <td style="border:1px solid #ccc; padding:8px;">
-                    <div style="border-bottom:1px dashed #ccc; height:16px;"></div>
-                    <div style="border-bottom:1px dashed #ccc; height:16px;"></div>
-                    <div style="border-bottom:1px dashed #ccc; height:16px;"></div>
-                    <div style="border-bottom:1px dashed #ccc; height:16px;"></div>
-                    <div style="border-bottom:1px dashed #ccc; height:16px;"></div>
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-          <div style="page-break-after:always;"></div>
-        `);
-      }
+            // Ensure valid date range
+            if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || startDate > endDate) {
+                console.error("Invalid date range provided. Falling back to full month.");
+                startDate = new Date(year, month, 1);
+                endDate = new Date(year, month + 1, 0);
+            }
 
-      const win = window.open('', '_blank');
-      const html = `
-        <html>
-          <head>
-            <title>Printable Calendar</title>
-            <link href="https://fonts.googleapis.com/css2?family=Merriweather&display=swap" rel="stylesheet">
-            <style>
-              body { font-family: 'Merriweather', serif; padding: 40px; }
-              @media print {
-                button { display: none; }
-              }
-            </style>
-          </head>
-          <body>
-            ${pages.join('')}
-            <button onclick="window.print()" style="margin: 40px auto; display:block; background:#2563eb; color:white; padding:10px 20px; border:none; border-radius:8px; font-size:16px;">Print</button>
-          </body>
-        </html>
-      `;
-      win.document.write(html);
-      win.document.close();
-    }
+            const date = new Date(startDate);
+            while (date <= endDate && date.getMonth() <= (endDate.getMonth() || month)) { // Ensure we stay within the month/range
+                days.push({
+                    date: date.getDate(),
+                    month: date.getMonth(), // Add month to differentiate dates across months if range spans
+                    year: date.getFullYear(),
+                    day: date.toLocaleString('en-us', { weekday: 'long' }),
+                });
+                date.setDate(date.getDate() + 1); // Move to the next day
+            }
+            return days;
+        }
 
-    monthSelect.addEventListener('change', renderCalendar);
-    yearSelect.addEventListener('change', renderCalendar);
+        /**
+         * Renders the calendar content in the main view,
+         * paginating based on the selected 'dates per page' value
+         * and displaying the chosen number of note lines.
+         */
+        function renderCalendar() {
+            const month = parseInt(monthSelect.value);
+            const year = parseInt(yearSelect.value);
+            const datesPerPage = parseInt(datesPerPageSelect.value);
+            const notesPerLine = parseInt(notesPerLineSelect.value);
+            const fromDateStr = fromDateInput.value;
+            const toDateStr = toDateInput.value;
 
-    monthSelect.value = new Date().getMonth();
-    renderCalendar();
-  </script>
+            const days = generateDays(year, month, fromDateStr, toDateStr);
+            calendarContent.innerHTML = ''; // Clear previous content
+
+            // Generate note lines HTML based on notesPerLine
+            const noteLinesHtml = Array(notesPerLine).fill('<div class="note-line"></div>').join('');
+
+            // Loop through days, creating a new table for each page
+            for (let i = 0; i < days.length; i += datesPerPage) {
+                const pageDays = days.slice(i, i + datesPerPage); // Slice days for the current page
+                const table = document.createElement('div');
+                // Add page-break class for print styling
+                table.className = 'mb-12 page-break';
+
+                // Determine the title for the current page
+                let pageTitle = `${months[month]} ${year}`;
+                if (fromDateStr && toDateStr) {
+                    // If a specific range is selected, show the range
+                    const startDay = pageDays[0];
+                    const endDay = pageDays[pageDays.length - 1];
+                    if (startDay && endDay) {
+                         pageTitle = `${months[startDay.month]} ${startDay.date}, ${startDay.year} - ${months[endDay.month]} ${endDay.date}, ${endDay.year}`;
+                    }
+                }
+
+
+                // Construct the HTML for each page's table
+                table.innerHTML = `
+                    <h2 class="text-center text-2xl font-bold mb-4">${pageTitle}</h2>
+                    <table class="w-full border-2 border-black table-fixed">
+                        <thead class="bg-gray-200">
+                            <tr>
+                                <th class="w-1/12 border-2 border-black p-2 rounded-tl-lg">Date</th>
+                                <th class="w-2/12 border-2 border-black p-2">Day</th>
+                                <th class="w-9/12 border-2 border-black p-2 rounded-tr-lg">Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${pageDays.map(day => `
+                                <tr>
+                                    <td class="border-2 border-black p-2 text-center">${day.date}</td>
+                                    <td class="border-2 border-black p-2 text-center">${day.day}</td>
+                                    <td class="border-2 border-black p-2">
+                                        ${noteLinesHtml}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                calendarContent.appendChild(table);
+            }
+        }
+
+        /**
+         * Generates a new window with the printable calendar content,
+         * including page breaks for PDF export and chosen number of note lines.
+         */
+        function generatePrintableCalendar() {
+            const month = parseInt(monthSelect.value);
+            const year = parseInt(yearSelect.value);
+            const datesPerPage = parseInt(datesPerPageSelect.value);
+            const notesPerLine = parseInt(notesPerLineSelect.value);
+            const fromDateStr = fromDateInput.value;
+            const toDateStr = toDateInput.value;
+
+            const days = generateDays(year, month, fromDateStr, toDateStr);
+            const pages = [];
+
+            // Generate note lines HTML for the print view
+            const noteLinesPrintHtml = Array(notesPerLine).fill('<div style="border-bottom:2px solid black; height:16px;"></div>').join('');
+
+            // Loop through days, creating HTML for each printable page
+            for (let i = 0; i < days.length; i += datesPerPage) {
+                const pageDays = days.slice(i, i + datesPerPage); // Slice days for the current page
+
+                // Determine the title for the current page in print view
+                let pageTitle = `${months[month]} ${year}`;
+                if (fromDateStr && toDateStr) {
+                    const startDay = pageDays[0];
+                    const endDay = pageDays[pageDays.length - 1];
+                    if (startDay && endDay) {
+                         pageTitle = `${months[startDay.month]} ${startDay.date}, ${startDay.year} - ${months[endDay.month]} ${endDay.date}, ${endDay.year}`;
+                    }
+                }
+
+                pages.push(`
+                    <h2 style="text-align:center; font-size:24px; margin-bottom:20px;">${pageTitle}</h2>
+                    <table style="width:100%; border-collapse:collapse; margin-bottom:40px;">
+                        <thead>
+                            <tr style="background:#f3f4f6;">
+                                <th style="width:10%; border:2px solid black; padding:8px;">Date</th>
+                                <th style="width:20%; border:2px solid black; padding:8px;">Day</th>
+                                <th style="width:70%; border:2px solid black; padding:8px;">Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${pageDays.map(day => `
+                                <tr>
+                                    <td style="border:2px solid black; padding:8px; text-align:center;">${day.date}</td>
+                                    <td style="border:2px solid black; padding:8px; text-align:center;">${day.day}</td>
+                                    <td style="border:2px solid black; padding:8px;">
+                                        ${noteLinesPrintHtml}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    <div style="page-break-after:always;"></div> `);
+            }
+
+            // Open a new window and write the printable HTML
+            const win = window.open('', '_blank');
+            const html = `
+                <html>
+                    <head>
+                        <title>Printable Calendar</title>
+                        <link href="https://fonts.googleapis.com/css2?family=Merriweather&display=swap" rel="stylesheet">
+                        <style>
+                            body { font-family: 'Merriweather', serif; padding: 40px; }
+                            @media print { button { display: none; } } /* Hide print button when printing */
+                        </style>
+                    </head>
+                    <body>
+                        ${pages.join('')}
+                        <button onclick="window.print()" style="margin: 40px auto; display:block; background:#2563eb; color:white; padding:10px 20px; border:none; border-radius:8px; font-size:16px;">Print</button>
+                    </body>
+                </html>
+            `;
+            win.document.write(html);
+            win.document.close(); // Close the document stream
+        }
+
+        // Add event listeners to update the calendar when selections change
+        monthSelect.addEventListener('change', renderCalendar);
+        yearSelect.addEventListener('change', renderCalendar);
+        datesPerPageSelect.addEventListener('change', renderCalendar);
+        notesPerLineSelect.addEventListener('change', renderCalendar);
+        fromDateInput.addEventListener('change', renderCalendar); // New event listener
+        toDateInput.addEventListener('change', renderCalendar);   // New event listener
+
+        // Set default month and render calendar on initial load
+        monthSelect.value = new Date().getMonth();
+        renderCalendar();
+    </script>
 </body>
 </html>
