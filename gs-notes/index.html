@@ -79,11 +79,15 @@
     <div class="flex flex-col sm:flex-row h-screen">
         <div id="leftFrame" class="w-full sm:w-2/5 md:w-1/3 lg:w-1/4 xl:w-1/5 bg-white shadow-lg p-4 overflow-y-auto custom-scrollbar h-1/3 sm:h-full">
             <h2 class="text-lg sm:text-xl md:text-2xl font-bold mb-3 sm:mb-4 text-gray-800 border-b pb-2">HTML Files</h2>
+            <div class="mb-3 sm:mb-4">
+                <input type="text" id="searchFilesInput" placeholder="Search files..." class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+            </div>
             <div id="fileListContainer">
                 <div id="loader" class="loader"></div>
                 <ul id="fileList" class="space-y-1 sm:space-y-2">
                     </ul>
                 <p id="errorMessage" class="text-red-500 text-xs sm:text-sm mt-3 sm:mt-4"></p>
+                <p id="noResultsMessage" class="text-gray-500 text-xs sm:text-sm mt-3 sm:mt-4" style="display: none;">No files match your search.</p>
             </div>
         </div>
 
@@ -99,11 +103,12 @@
             const fileListUl = document.getElementById('fileList');
             const loader = document.getElementById('loader');
             const errorMessageEl = document.getElementById('errorMessage');
+            const noResultsMessageEl = document.getElementById('noResultsMessage');
+            const searchFilesInput = document.getElementById('searchFilesInput');
             let currentActiveItem = null;
+            let allFetchedFiles = []; // To store all fetched file elements for filtering
 
-            // Assuming this viewer file itself is named 'index.html' or similar.
-            // It will be excluded from the list.
-            const viewerFileName = 'index.html'; // Change if your viewer has a different name
+            const viewerFileName = 'index.html'; 
 
             const githubUsername = 'gauravsharrma'; 
             const githubRepo = 'apps';
@@ -121,10 +126,29 @@
                 </body>
             `;
 
+            function filterFiles() {
+                const searchTerm = searchFilesInput.value.toLowerCase();
+                let visibleCount = 0;
+                allFetchedFiles.forEach(listItem => {
+                    const fileName = listItem.textContent.toLowerCase();
+                    if (fileName.includes(searchTerm)) {
+                        listItem.style.display = ''; // Show item
+                        visibleCount++;
+                    } else {
+                        listItem.style.display = 'none'; // Hide item
+                    }
+                });
+                noResultsMessageEl.style.display = visibleCount === 0 && searchTerm !== '' ? 'block' : 'none';
+            }
+
+            searchFilesInput.addEventListener('input', filterFiles);
+
             async function fetchAndDisplayFiles() {
                 loader.style.display = 'block';
                 errorMessageEl.textContent = '';
+                noResultsMessageEl.style.display = 'none';
                 fileListUl.innerHTML = ''; 
+                allFetchedFiles = []; // Clear previous cache
 
                 console.log('Attempting to fetch from GitHub API URL:', apiUrl); 
 
@@ -146,7 +170,7 @@
                     const htmlFiles = files.filter(file =>
                         file.type === 'file' &&
                         (file.name.endsWith('.html') || file.name.endsWith('.htm')) &&
-                        file.name.toLowerCase() !== viewerFileName.toLowerCase() // Exclude the viewer file itself
+                        file.name.toLowerCase() !== viewerFileName.toLowerCase() 
                     );
 
                     if (htmlFiles.length === 0) {
@@ -192,7 +216,7 @@
                                     }
                                 }
                                 this.classList.add('active');
-                                this.classList.remove('file-list-item-link'); // Remove link color when active
+                                this.classList.remove('file-list-item-link'); 
                                 currentActiveItem = this;
 
                                 contentFrame.onload = null;
@@ -214,7 +238,9 @@
                             }
                         });
                         fileListUl.appendChild(listItem);
+                        allFetchedFiles.push(listItem); // Add to cache for filtering
                     });
+                    filterFiles(); // Apply initial filter (in case search input has a value from a previous session)
 
                 } catch (error) {
                     console.error('Error fetching files:', error);
