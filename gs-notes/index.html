@@ -21,7 +21,6 @@
             cursor: pointer;
             transition: background-color 0.3s ease, color 0.3s ease;
             word-break: break-all; /* Ensure long filenames don't break layout */
-            /* Default text color from Tailwind */
         }
         .file-list-item:hover {
             background-color: #e5e7eb; /* Tailwind gray-200 */
@@ -29,8 +28,8 @@
         .file-list-item.active {
             background-color: #d1d5db; /* Tailwind gray-300 */
             font-weight: bold;
+            color: #1f2937; /* Tailwind gray-800 for active text */
         }
-        /* Added class for link-like appearance */
         .file-list-item-link {
             color: #2563eb; /* Tailwind blue-600 */
             text-decoration: none;
@@ -39,7 +38,6 @@
             text-decoration: underline;
             color: #1d4ed8; /* Tailwind blue-700 for hover */
         }
-
         /* Ensure iframe takes full height of its container */
         #contentFrame {
             width: 100%;
@@ -78,20 +76,19 @@
 </head>
 <body class="bg-gray-100">
 
-    <div class="flex h-screen">
-        <div id="leftFrame" class="w-1/3 sm:w-1/4 md:w-1/5 lg:w-1/6 bg-white shadow-lg p-4 sm:p-6 overflow-y-auto custom-scrollbar">
-            <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-gray-800 border-b pb-2">HTML Files</h2>
+    <div class="flex flex-col sm:flex-row h-screen">
+        <div id="leftFrame" class="w-full sm:w-2/5 md:w-1/3 lg:w-1/4 xl:w-1/5 bg-white shadow-lg p-4 overflow-y-auto custom-scrollbar h-1/3 sm:h-full">
+            <h2 class="text-lg sm:text-xl md:text-2xl font-bold mb-3 sm:mb-4 text-gray-800 border-b pb-2">HTML Files</h2>
             <div id="fileListContainer">
                 <div id="loader" class="loader"></div>
-                <ul id="fileList" class="space-y-2">
+                <ul id="fileList" class="space-y-1 sm:space-y-2">
                     </ul>
-                <p id="errorMessage" class="text-red-500 text-sm mt-4"></p>
+                <p id="errorMessage" class="text-red-500 text-xs sm:text-sm mt-3 sm:mt-4"></p>
             </div>
-            
         </div>
 
-        <div id="rightFrame" class="flex-1 bg-gray-50 p-1 md:p-2">
-            <iframe id="contentFrame" srcdoc="<div class='flex items-center justify-center h-full'><div class='text-center p-4 sm:p-8 bg-white rounded-xl shadow-md'><h1 class='text-2xl sm:text-3xl font-semibold text-gray-700 mb-4'>Welcome!</h1><p class='text-gray-600 text-sm sm:text-base'>Select an HTML file from the list on the left to view its content here.</p><p class='text-xs sm:text-sm text-gray-500 mt-4'>The file list is loading dynamically...</p></div></div>" title="Content Display">
+        <div id="rightFrame" class="flex-1 bg-gray-50 p-1 md:p-2 h-2/3 sm:h-full">
+            <iframe id="contentFrame" srcdoc="<div class='flex items-center justify-center h-full'><div class='text-center p-4 sm:p-8 bg-white rounded-xl shadow-md'><h1 class='text-xl sm:text-2xl md:text-3xl font-semibold text-gray-700 mb-3 sm:mb-4'>Welcome!</h1><p class='text-gray-600 text-xs sm:text-sm md:text-base'>Select an HTML file from the list on the left to view its content here.</p><p class='text-xs sm:text-sm text-gray-500 mt-3 sm:mt-4'>The file list is loading dynamically...</p></div></div>" title="Content Display">
                 Your browser does not support iframes.
             </iframe>
         </div>
@@ -100,10 +97,13 @@
     <script>
         document.addEventListener('DOMContentLoaded', async function () {
             const fileListUl = document.getElementById('fileList');
-            // const contentFrame = document.getElementById('contentFrame'); // Get reference later
             const loader = document.getElementById('loader');
             const errorMessageEl = document.getElementById('errorMessage');
             let currentActiveItem = null;
+
+            // Assuming this viewer file itself is named 'index.html' or similar.
+            // It will be excluded from the list.
+            const viewerFileName = 'index.html'; // Change if your viewer has a different name
 
             const githubUsername = 'gauravsharrma'; 
             const githubRepo = 'apps';
@@ -114,9 +114,9 @@
             const iframeNotFoundHTML = `
                 <body style="font-family: 'Merriweather', serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f9fafb; margin: 0; padding: 1rem;">
                     <div style="text-align: center; padding: 1.5rem; background-color: white; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                        <h1 style="font-size: 1.875rem; line-height: 2.25rem; font-weight: 600; color: #dc2626; margin-bottom: 1rem;">Page Not Found</h1>
-                        <p style="color: #4b5563;">The requested file could not be loaded or does not exist in this repository directory.</p>
-                        <p style="color: #6b7280; font-size: 0.875rem; line-height: 1.25rem; margin-top: 0.5rem;">Please check the file name and ensure the corresponding HTML file exists.</p>
+                        <h1 style="font-size: 1.5rem; sm:font-size: 1.875rem; line-height: 2.25rem; font-weight: 600; color: #dc2626; margin-bottom: 1rem;">Page Not Found</h1>
+                        <p style="color: #4b5563; font-size: 0.875rem; sm:font-size: 1rem;">The requested file could not be loaded or does not exist in this repository directory.</p>
+                        <p style="color: #6b7280; font-size: 0.75rem; sm:font-size: 0.875rem; line-height: 1.25rem; margin-top: 0.5rem;">Please check the file name and ensure the corresponding HTML file exists.</p>
                     </div>
                 </body>
             `;
@@ -144,11 +144,13 @@
                     }
 
                     const htmlFiles = files.filter(file =>
-                        file.type === 'file' && (file.name.endsWith('.html') || file.name.endsWith('.htm'))
+                        file.type === 'file' &&
+                        (file.name.endsWith('.html') || file.name.endsWith('.htm')) &&
+                        file.name.toLowerCase() !== viewerFileName.toLowerCase() // Exclude the viewer file itself
                     );
 
                     if (htmlFiles.length === 0) {
-                        errorMessageEl.textContent = 'No HTML files found in this directory.';
+                        errorMessageEl.textContent = 'No other HTML files found in this directory.';
                         loader.style.display = 'none';
                         return;
                     }
@@ -157,8 +159,7 @@
 
                     htmlFiles.forEach(file => {
                         const listItem = document.createElement('li');
-                        // Added 'file-list-item-link' for styling
-                        listItem.className = 'file-list-item file-list-item-link p-2 sm:p-3 rounded-lg text-sm sm:text-base'; 
+                        listItem.className = 'file-list-item file-list-item-link p-1.5 sm:p-2 rounded-lg text-xs sm:text-sm'; 
                         listItem.textContent = file.name;
                         const filePageUrl = `${file.name}`; 
 
@@ -169,7 +170,6 @@
                             console.log('Attempting to load into iframe (data-src):', filePath); 
                             
                             if (filePath) {
-                                // Re-fetch the iframe element by ID inside the click handler
                                 const contentFrame = document.getElementById('contentFrame');
                                 if (!contentFrame) {
                                     console.error('CRITICAL: Could not find iframe element with ID "contentFrame"');
@@ -178,7 +178,7 @@
                                 }
 
                                 try {
-                                    contentFrame.removeAttribute('srcdoc'); // Remove srcdoc before setting src
+                                    contentFrame.removeAttribute('srcdoc'); 
                                     contentFrame.src = filePath; 
                                     console.log('iframe.src was set to:', contentFrame.src); 
                                 } catch (e) {
@@ -187,17 +187,14 @@
 
                                 if (currentActiveItem) {
                                     currentActiveItem.classList.remove('active');
-                                    // Ensure the link class is reapplied if it was part of the active state
                                     if (!currentActiveItem.classList.contains('file-list-item-link')) {
                                         currentActiveItem.classList.add('file-list-item-link');
                                     }
                                 }
                                 this.classList.add('active');
-                                // If active state removes link class, ensure it's managed appropriately
-                                // For now, active class primarily changes background and font-weight
+                                this.classList.remove('file-list-item-link'); // Remove link color when active
                                 currentActiveItem = this;
 
-                                // Reset and attach new handlers to the correct contentFrame reference
                                 contentFrame.onload = null;
                                 contentFrame.onerror = null;
 
