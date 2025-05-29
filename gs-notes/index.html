@@ -115,7 +115,7 @@
             const searchFilesInput = document.getElementById('searchFilesInput');
             const mobileMenuButton = document.getElementById('mobileMenuButton');
             const leftFrame = document.getElementById('leftFrame');
-            const rightFrame = document.getElementById('rightFrame');
+            // const rightFrame = document.getElementById('rightFrame'); // Not directly used in this scope
 
 
             let currentActiveItem = null;
@@ -126,6 +126,8 @@
             const githubUsername = 'gauravsharrma'; 
             const githubRepo = 'apps';
             const directoryPath = 'gs-notes'; 
+            const cacheKey = `githubFilesCache_${githubUsername}_${githubRepo}_${directoryPath}`;
+
 
             const apiUrl = `https://api.github.com/repos/${githubUsername}/${githubRepo}/contents/${directoryPath}`;
 
@@ -154,23 +156,105 @@
                 noResultsMessageEl.style.display = visibleCount === 0 && searchTerm !== '' ? 'block' : 'none';
             }
 
-            if (searchFilesInput) { // Check if element exists
+            if (searchFilesInput) { 
                 searchFilesInput.addEventListener('input', filterFiles);
             }
 
-            if (mobileMenuButton && leftFrame) { // Check if elements exist
+            if (mobileMenuButton && leftFrame) { 
                 mobileMenuButton.addEventListener('click', () => {
                     leftFrame.classList.toggle('hidden');
-                    leftFrame.classList.toggle('sm:flex'); // Ensure sm:flex is re-applied or removed correctly with hidden
+                    leftFrame.classList.toggle('sm:flex'); 
                     
-                    // When leftFrame is shown on mobile, ensure it has flex properties for its children
                     if (!leftFrame.classList.contains('hidden')) {
                         leftFrame.classList.add('flex', 'flex-col');
-                    } else {
-                        // Optional: remove if they interfere when hidden, though 'hidden' should suffice
-                        // leftFrame.classList.remove('flex', 'flex-col');
                     }
                 });
+            }
+            
+            function processAndDisplayFiles(filesData) {
+                 if (!Array.isArray(filesData)) {
+                     throw new Error('Cached data is not in the expected format.');
+                }
+                const htmlFiles = filesData.filter(file =>
+                    file.type === 'file' &&
+                    (file.name.endsWith('.html') || file.name.endsWith('.htm')) &&
+                    file.name.toLowerCase() !== viewerFileName.toLowerCase() 
+                );
+
+                if (htmlFiles.length === 0) {
+                    errorMessageEl.textContent = 'No other HTML files found in this directory.';
+                    return;
+                }
+
+                htmlFiles.sort((a, b) => a.name.localeCompare(b.name));
+
+                htmlFiles.forEach(file => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'file-list-item file-list-item-link p-1.5 sm:p-2 rounded-lg text-xs sm:text-sm'; 
+                    listItem.textContent = file.name;
+                    const filePageUrl = `${file.name}`; 
+
+                    listItem.setAttribute('data-src', filePageUrl);
+
+                    listItem.addEventListener('click', function () {
+                        const filePath = this.getAttribute('data-src');
+                        console.log('Attempting to load into iframe (data-src):', filePath); 
+                        
+                        if (filePath) {
+                            const contentFrame = document.getElementById('contentFrame');
+                            if (!contentFrame) {
+                                console.error('CRITICAL: Could not find iframe element with ID "contentFrame"');
+                                errorMessageEl.textContent = 'Error: Iframe container not found.';
+                                return;
+                            }
+
+                            try {
+                                contentFrame.removeAttribute('srcdoc'); 
+                                contentFrame.src = filePath; 
+                                console.log('iframe.src was set to:', contentFrame.src); 
+                            } catch (e) {
+                                console.error('Error directly setting iframe.src:', e);
+                            }
+
+                            if (currentActiveItem) {
+                                currentActiveItem.classList.remove('active');
+                                if (!currentActiveItem.classList.contains('file-list-item-link')) {
+                                    currentActiveItem.classList.add('file-list-item-link');
+                                }
+                            }
+                            this.classList.add('active');
+                            this.classList.remove('file-list-item-link'); 
+                            currentActiveItem = this;
+
+                            if (window.innerWidth < 640) { 
+                               if (leftFrame && !leftFrame.classList.contains('hidden')) {
+                                   leftFrame.classList.add('hidden');
+                                   leftFrame.classList.remove('sm:flex'); 
+                               }
+                            }
+
+                            contentFrame.onload = null;
+                            contentFrame.onerror = null;
+
+                            contentFrame.onload = function() {
+                                console.log('iframe content loaded for:', filePath);
+                                contentFrame.onload = null; 
+                                contentFrame.onerror = null;
+                            };
+                            contentFrame.onerror = function() {
+                                console.error('iframe content failed to load for:', filePath);
+                                contentFrame.srcdoc = iframeNotFoundHTML;
+                                contentFrame.onload = null; 
+                                contentFrame.onerror = null; 
+                            };
+                        } else {
+                            console.warn('filePath is empty or null, not setting iframe src.');
+                        }
+                    });
+                    fileListUl.appendChild(listItem);
+                    allFetchedFiles.push(listItem); 
+                });
+                filterFiles(); 
             }
 
 
@@ -181,106 +265,46 @@
                 fileListUl.innerHTML = ''; 
                 allFetchedFiles = []; 
 
+                // Try to load from sessionStorage first
+                const cachedFiles = sessionStorage.getItem(cacheKey);
+                if (cachedFiles) {
+                    console.log('Loading files from session cache.');
+                    try {
+                        processAndDisplayFiles(JSON.parse(cachedFiles));
+                        loader.style.display = 'none';
+                        return; // Exit if cache is successfully used
+                    } catch (e) {
+                        console.warn('Failed to parse cached files, fetching from API.', e);
+                        sessionStorage.removeItem(cacheKey); // Clear invalid cache
+                    }
+                }
+
+
                 console.log('Attempting to fetch from GitHub API URL:', apiUrl); 
 
                 try {
                     const response = await fetch(apiUrl);
                     if (!response.ok) {
                         const errorData = await response.json().catch(() => ({ message: 'Failed to parse error response from GitHub API.' }));
+                        if (response.status === 403) { // Specifically handle 403 Rate Limit
+                             throw new Error(`GitHub API Error: ${response.status} Rate Limit Exceeded. Please wait a while or use authenticated requests for higher limits. Details: ${errorData.message}`);
+                        }
                         if (response.status === 404) {
                             throw new Error(`GitHub API Error: ${response.status} Not Found. Please check if the repository '${githubUsername}/${githubRepo}' is public and the path '${directoryPath}' is correct. Details: ${errorData.message}`);
                         }
                         throw new Error(`GitHub API Error: ${response.status} ${errorData.message || 'Failed to fetch files.'}`);
                     }
                     const files = await response.json();
-
-                    if (!Array.isArray(files)) {
-                         throw new Error('Unexpected response format from GitHub API. Expected an array of files.');
+                    
+                    // Cache the fetched files in sessionStorage
+                    try {
+                        sessionStorage.setItem(cacheKey, JSON.stringify(files));
+                        console.log('Files cached in session storage.');
+                    } catch (e) {
+                        console.warn('Could not cache files in session storage (maybe storage is full or disabled).', e);
                     }
 
-                    const htmlFiles = files.filter(file =>
-                        file.type === 'file' &&
-                        (file.name.endsWith('.html') || file.name.endsWith('.htm')) &&
-                        file.name.toLowerCase() !== viewerFileName.toLowerCase() 
-                    );
-
-                    if (htmlFiles.length === 0) {
-                        errorMessageEl.textContent = 'No other HTML files found in this directory.';
-                        loader.style.display = 'none';
-                        return;
-                    }
-
-                    htmlFiles.sort((a, b) => a.name.localeCompare(b.name));
-
-                    htmlFiles.forEach(file => {
-                        const listItem = document.createElement('li');
-                        listItem.className = 'file-list-item file-list-item-link p-1.5 sm:p-2 rounded-lg text-xs sm:text-sm'; 
-                        listItem.textContent = file.name;
-                        const filePageUrl = `${file.name}`; 
-
-                        listItem.setAttribute('data-src', filePageUrl);
-
-                        listItem.addEventListener('click', function () {
-                            const filePath = this.getAttribute('data-src');
-                            console.log('Attempting to load into iframe (data-src):', filePath); 
-                            
-                            if (filePath) {
-                                const contentFrame = document.getElementById('contentFrame');
-                                if (!contentFrame) {
-                                    console.error('CRITICAL: Could not find iframe element with ID "contentFrame"');
-                                    errorMessageEl.textContent = 'Error: Iframe container not found.';
-                                    return;
-                                }
-
-                                try {
-                                    contentFrame.removeAttribute('srcdoc'); 
-                                    contentFrame.src = filePath; 
-                                    console.log('iframe.src was set to:', contentFrame.src); 
-                                } catch (e) {
-                                    console.error('Error directly setting iframe.src:', e);
-                                }
-
-                                if (currentActiveItem) {
-                                    currentActiveItem.classList.remove('active');
-                                    if (!currentActiveItem.classList.contains('file-list-item-link')) {
-                                        currentActiveItem.classList.add('file-list-item-link');
-                                    }
-                                }
-                                this.classList.add('active');
-                                this.classList.remove('file-list-item-link'); 
-                                currentActiveItem = this;
-
-                                // Hide left frame on mobile after selection
-                                if (window.innerWidth < 640) { // 640px is Tailwind's 'sm' breakpoint
-                                   if (leftFrame && !leftFrame.classList.contains('hidden')) {
-                                       leftFrame.classList.add('hidden');
-                                       leftFrame.classList.remove('sm:flex'); // ensure this doesn't stick
-                                   }
-                                }
-
-
-                                contentFrame.onload = null;
-                                contentFrame.onerror = null;
-
-                                contentFrame.onload = function() {
-                                    console.log('iframe content loaded for:', filePath);
-                                    contentFrame.onload = null; 
-                                    contentFrame.onerror = null;
-                                };
-                                contentFrame.onerror = function() {
-                                    console.error('iframe content failed to load for:', filePath);
-                                    contentFrame.srcdoc = iframeNotFoundHTML;
-                                    contentFrame.onload = null; 
-                                    contentFrame.onerror = null; 
-                                };
-                            } else {
-                                console.warn('filePath is empty or null, not setting iframe src.');
-                            }
-                        });
-                        fileListUl.appendChild(listItem);
-                        allFetchedFiles.push(listItem); 
-                    });
-                    filterFiles(); 
+                    processAndDisplayFiles(files);
 
                 } catch (error) {
                     console.error('Error fetching files:', error);
