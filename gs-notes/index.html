@@ -19,8 +19,9 @@
         }
         .file-list-item {
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.3s ease, color 0.3s ease;
             word-break: break-all; /* Ensure long filenames don't break layout */
+            /* Default text color from Tailwind */
         }
         .file-list-item:hover {
             background-color: #e5e7eb; /* Tailwind gray-200 */
@@ -29,6 +30,16 @@
             background-color: #d1d5db; /* Tailwind gray-300 */
             font-weight: bold;
         }
+        /* Added class for link-like appearance */
+        .file-list-item-link {
+            color: #2563eb; /* Tailwind blue-600 */
+            text-decoration: none;
+        }
+        .file-list-item-link:hover {
+            text-decoration: underline;
+            color: #1d4ed8; /* Tailwind blue-700 for hover */
+        }
+
         /* Ensure iframe takes full height of its container */
         #contentFrame {
             width: 100%;
@@ -89,7 +100,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', async function () {
             const fileListUl = document.getElementById('fileList');
-            const contentFrame = document.getElementById('contentFrame');
+            // const contentFrame = document.getElementById('contentFrame'); // Get reference later
             const loader = document.getElementById('loader');
             const errorMessageEl = document.getElementById('errorMessage');
             let currentActiveItem = null;
@@ -146,7 +157,8 @@
 
                     htmlFiles.forEach(file => {
                         const listItem = document.createElement('li');
-                        listItem.className = 'file-list-item p-2 sm:p-3 rounded-lg text-sm sm:text-base text-gray-700';
+                        // Added 'file-list-item-link' for styling
+                        listItem.className = 'file-list-item file-list-item-link p-2 sm:p-3 rounded-lg text-sm sm:text-base'; 
                         listItem.textContent = file.name;
                         const filePageUrl = `${file.name}`; 
 
@@ -157,35 +169,48 @@
                             console.log('Attempting to load into iframe (data-src):', filePath); 
                             
                             if (filePath) {
+                                // Re-fetch the iframe element by ID inside the click handler
+                                const contentFrame = document.getElementById('contentFrame');
+                                if (!contentFrame) {
+                                    console.error('CRITICAL: Could not find iframe element with ID "contentFrame"');
+                                    errorMessageEl.textContent = 'Error: Iframe container not found.';
+                                    return;
+                                }
+
                                 try {
-                                    // Try removing srcdoc first, then set src
-                                    contentFrame.removeAttribute('srcdoc');
+                                    contentFrame.removeAttribute('srcdoc'); // Remove srcdoc before setting src
                                     contentFrame.src = filePath; 
-                                    console.log('iframe.src was set to:', contentFrame.src); // Log the actual src value after setting
+                                    console.log('iframe.src was set to:', contentFrame.src); 
                                 } catch (e) {
                                     console.error('Error directly setting iframe.src:', e);
                                 }
 
                                 if (currentActiveItem) {
                                     currentActiveItem.classList.remove('active');
+                                    // Ensure the link class is reapplied if it was part of the active state
+                                    if (!currentActiveItem.classList.contains('file-list-item-link')) {
+                                        currentActiveItem.classList.add('file-list-item-link');
+                                    }
                                 }
                                 this.classList.add('active');
+                                // If active state removes link class, ensure it's managed appropriately
+                                // For now, active class primarily changes background and font-weight
                                 currentActiveItem = this;
 
-                                // Reset and attach new handlers
+                                // Reset and attach new handlers to the correct contentFrame reference
                                 contentFrame.onload = null;
                                 contentFrame.onerror = null;
 
                                 contentFrame.onload = function() {
                                     console.log('iframe content loaded for:', filePath);
-                                    contentFrame.onload = null; // Clear after use
+                                    contentFrame.onload = null; 
                                     contentFrame.onerror = null;
                                 };
                                 contentFrame.onerror = function() {
                                     console.error('iframe content failed to load for:', filePath);
                                     contentFrame.srcdoc = iframeNotFoundHTML;
                                     contentFrame.onload = null; 
-                                    contentFrame.onerror = null; // Clear after use
+                                    contentFrame.onerror = null; 
                                 };
                             } else {
                                 console.warn('filePath is empty or null, not setting iframe src.');
