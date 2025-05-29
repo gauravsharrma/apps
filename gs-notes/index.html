@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML File Viewer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Merriweather', serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            height: 100vh;
+            overflow: hidden; /* Prevent scrollbars on the body itself */
+        }
+        .file-list-item {
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .file-list-item:hover {
+            background-color: #e5e7eb; /* Tailwind gray-200 */
+        }
+        .file-list-item.active {
+            background-color: #d1d5db; /* Tailwind gray-300 */
+            font-weight: bold;
+        }
+        /* Ensure iframe takes full height of its container */
+        #contentFrame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        /* Custom scrollbar for webkit browsers (Chrome, Safari) */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #c4c4c4;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="flex h-screen">
+        <div id="leftFrame" class="w-1/4 md:w-1/5 lg:w-1/6 bg-white shadow-lg p-6 overflow-y-auto custom-scrollbar">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">HTML Files</h2>
+            <ul id="fileList" class="space-y-2">
+                <!--
+                    IMPORTANT FOR GITHUB PAGES (and other static hosting):
+                    This is a MANUALLY MAINTAINED file list. Client-side JavaScript cannot directly read
+                    directory contents from a server or local file system for security reasons.
+                    When hosting on GitHub Pages, you must manually update this list
+                    if you add, remove, or rename HTML files in this directory.
+
+                    Replace 'about.html', 'contact.html', etc.,
+                    with the ACTUAL names of HTML files located in the SAME DIRECTORY
+                    as this main HTML file in your GitHub repository.
+                -->
+                <li class="file-list-item p-3 rounded-lg text-gray-700" data-src="about.html">about.html</li>
+                <li class="file-list-item p-3 rounded-lg text-gray-700" data-src="contact.html">contact.html</li>
+                <li class="file-list-item p-3 rounded-lg text-gray-700" data-src="services.html">services.html</li>
+                <li class="file-list-item p-3 rounded-lg text-gray-700" data-src="portfolio.html">portfolio.html</li>
+                <li class="file-list-item p-3 rounded-lg text-gray-700" data-src="non_existent_page.html">non_existent_page.html (Test)</li>
+            </ul>
+            <div class="mt-8 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 rounded-md">
+                <p class="font-semibold">Developer Note:</p>
+                <p class="text-sm">This file list is manually maintained. For a dynamic list of files from a folder, a server-side script (not supported by GitHub Pages directly for this purpose) would be required. Remember to update the list here if your files change.</p>
+            </div>
+        </div>
+
+        <div id="rightFrame" class="flex-1 bg-gray-50 p-1 md:p-2">
+            <iframe id="contentFrame" srcdoc="<div class='flex items-center justify-center h-full'><div class='text-center p-8 bg-white rounded-xl shadow-md'><h1 class='text-3xl font-semibold text-gray-700 mb-4'>Welcome!</h1><p class='text-gray-600'>Select an HTML file from the list on the left to view its content here.</p><p class='text-sm text-gray-500 mt-4'>Ensure the target HTML files are in the same directory as this viewer in your repository.</p></div></div>" title="Content Display">
+                Your browser does not support iframes.
+            </iframe>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const fileListItems = document.querySelectorAll('#fileList .file-list-item');
+            const contentFrame = document.getElementById('contentFrame');
+            let currentActiveItem = null;
+
+            // Pre-create a simple "Not Found" page content
+            const notFoundHTML = `
+                <body style="font-family: 'Merriweather', serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f9fafb; margin: 0;">
+                    <div style="text-align: center; padding: 2rem; background-color: white; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                        <h1 style="font-size: 2.25rem; font-weight: 600; color: #dc2626; margin-bottom: 1rem;">Page Not Found</h1>
+                        <p style="color: #4b5563;">The requested file could not be loaded or does not exist in this repository directory.</p>
+                        <p style="color: #6b7280; font-size: 0.875rem; margin-top: 0.5rem;">Please check the file name in the list and ensure the corresponding HTML file exists in the same directory.</p>
+                    </div>
+                </body>
+            `;
+
+            fileListItems.forEach(item => {
+                item.addEventListener('click', function () {
+                    const filePath = this.getAttribute('data-src');
+                    if (filePath) {
+                        // Update iframe source
+                        contentFrame.src = filePath;
+
+                        // Set active class
+                        if (currentActiveItem) {
+                            currentActiveItem.classList.remove('active');
+                        }
+                        this.classList.add('active');
+                        currentActiveItem = this;
+
+                        // Handle cases where the iframe fails to load the content (e.g., file not found)
+                        contentFrame.onload = function() {
+                            // Reset onload to prevent it from firing with notFoundHTML or for subsequent successful loads
+                            contentFrame.onload = null;
+                            // Basic check if the loaded document's body is empty or indicates an error.
+                            // This is a heuristic and might need adjustment based on how specific servers/browsers handle 404s in iframes.
+                            try {
+                                if (contentFrame.contentWindow && contentFrame.contentWindow.document && contentFrame.contentWindow.document.body && contentFrame.contentWindow.document.body.innerHTML.trim() === "") {
+                                    // Some servers might return an empty body for a 404.
+                                    // console.warn("Loaded content is empty, potentially a 404 or an empty file.");
+                                    // contentFrame.srcdoc = notFoundHTML; // Optionally show notFoundHTML
+                                }
+                                // You could also check for specific error messages if your server returns them in a predictable way.
+                                // For GitHub Pages, a 404 will typically load GitHub's own 404 page.
+                            } catch (e) {
+                                console.warn("Error accessing iframe content. This can happen with 404s or cross-origin issues (though less likely here):", e);
+                                // If access is denied (e.g. due to a true 404 page from another origin like GitHub's default 404),
+                                // we might not be able to inspect its content, but the onerror should catch it.
+                            }
+                        };
+                        contentFrame.onerror = function() {
+                            // This is a more reliable way to catch if the file itself doesn't exist or there's a network error.
+                            contentFrame.srcdoc = notFoundHTML;
+                            contentFrame.onerror = null; // Clear error handler to prevent it from firing again for the notFoundHTML
+                        };
+                    }
+                });
+            });
+
+            // Optional: Load the first file by default if you want
+            // if (fileListItems.length > 0) {
+            //     fileListItems[0].click();
+            // }
+        });
+    </script>
+
+</body>
+</html>
