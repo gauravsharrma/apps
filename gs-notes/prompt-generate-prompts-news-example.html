@@ -1,0 +1,184 @@
+
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>prompt-generate-prompts-news-example</title> 
+
+          <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+
+
+          <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+          
+          <style>
+            body {
+              font-family: 'Merriweather', serif;
+              line-height: 1.6;
+              padding: 2rem;
+              background-color: #f9fafb; /* Light gray background */
+              color: #1f2937; /* Dark gray text */
+            }
+            .prose { /* Tailwind's typography plugin class for nice defaults */
+                max-width: 80ch; /* Optimal reading width */
+            }
+            pre {
+              background-color: #1f2937; /* Darker background for code blocks */
+              color: #f3f4f6; /* Light text for code blocks */
+              padding: 1rem;
+              border-radius: 0.5rem; /* Rounded corners */
+              overflow-x: auto; /* Scroll for long code lines */
+              font-family: 'Fira Code', monospace; /* Monospaced font for code */
+            }
+            code:not(pre > code) { /* Inline code */
+              background-color: #e5e7eb; /* Lighter background for inline code */
+              color: #374151; 
+              padding: 0.2rem 0.4rem;
+              border-radius: 0.25rem;
+              font-family: 'Fira Code', monospace; /* Monospaced font for code */
+              font-size: 0.9em;
+            }
+            h1, h2, h3, h4, h5, h6 {
+              margin-top: 1.5rem;
+              margin-bottom: 0.5rem;
+              font-weight: bold;
+              color: #111827; /* Even darker for headings */
+            }
+            blockquote {
+              border-left: 4px solid #60a5fa; /* Blue left border */
+              padding-left: 1rem;
+              color: #4b5563; /* Slightly muted text for blockquotes */
+              margin: 1rem 0;
+              font-style: italic;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 1rem 0;
+            }
+            th, td {
+                border: 1px solid #d1d5db; /* Gray border for table cells */
+                padding: 0.5rem 0.75rem;
+                text-align: left;
+            }
+            th {
+                background-color: #f3f4f6; /* Light gray background for table headers */
+            }
+            a {
+                color: #2563eb; /* Blue for links */
+                text-decoration: underline;
+            }
+            a:hover {
+                color: #1d4ed8; /* Darker blue on hover */
+            }
+            hr {
+                border-top: 1px solid #e5e7eb;
+                margin: 2rem 0;
+            }
+          </style>
+        </head>
+        <body>
+          <main class="prose lg:prose-xl max-w-4xl mx-auto">
+            <p>The search results confirm and expand upon the provided news description. The key elements are indeed the Trump administration&#39;s plan to &quot;aggressively&quot; revoke visas for Chinese students, especially those with ties to the Chinese Communist Party (CCP) or studying in &quot;critical fields,&quot; and new export controls on semiconductor design software to China. This is framed as a recent development (news articles dated May 29, 2025, and the current date is May 30, 2025). The news link provided (Times of India) is one of the sources reporting this. Secretary of State Marco Rubio is a key figure mentioned in these plans.</p>
+<p>The impact is significant:</p>
+<ul>
+<li>Widespread concern among students, universities (financial impact, talent pipeline), and tech companies.</li>
+<li>Threatens to disrupt a fragile US-China trade truce.</li>
+<li>Beijing has condemned the move.</li>
+<li>Seen as part of a broader US strategy to counter alleged technology theft and national security risks.</li>
+<li>The export controls on semiconductor software (Electronic Design Automation - EDA) are described as a &quot;choke point.&quot;</li>
+</ul>
+<p>I have sufficient information to create <code>prompt2</code>.</p>
+<p>[PROMPT2 START]
+You are a versatile content generation AI. Your task is to create multiple distinct pieces of content based on the following news summary. Ensure each piece of content is tailored for its specified platform.</p>
+<p><strong>Core News Information:</strong>
+The Trump administration has announced a plan to &quot;aggressively&quot; revoke visas for Chinese students, particularly targeting those with connections to the Chinese Communist Party (CCP) or those studying in &quot;critical fields.&quot; This policy, voiced by Secretary of State Marco Rubio, is causing widespread concern. Simultaneously, new U.S. export controls have been placed on semiconductor design software (Electronic Design Automation - EDA tools) to China, further impacting U.S.-China relations. These actions are seen as a significant escalation, potentially disrupting the fragile trade truce between the two nations and are framed as measures to protect U.S. national security and technology. Universities and tech companies are concerned about the potential loss of talent and revenue, while China has condemned these moves.</p>
+<p><strong>News Context Source (for reference, primary information is above):</strong> <a href="https://timesofindia.indiatimes.com/world/us/donald-trump-us-visa-crackdown-on-chinese-students-marco-rubio-xi-jinping-chinese-communist-party/articleshow/121493904.cms">https://timesofindia.indiatimes.com/world/us/donald-trump-us-visa-crackdown-on-chinese-students-marco-rubio-xi-jinping-chinese-communist-party/articleshow/121493904.cms</a> (Published around May 29, 2025)</p>
+<p><strong>Content Generation Instructions:</strong></p>
+<p>Based on the Core News Information, generate the following seven content outputs:</p>
+<ol>
+<li><p><strong>Blog Post (500-700 words):</strong></p>
+<ul>
+<li><strong>Title:</strong> Something engaging like &quot;US-China Tensions Flare: Student Visas and Tech Controls Ignite New Concerns&quot; or &quot;The Ripple Effect: Trump&#39;s New Stance on Chinese Students and Semiconductor Tech.&quot;</li>
+<li><strong>Content:</strong> Provide a comprehensive overview of the situation. Discuss the visa revocations for Chinese students (mentioning CCP ties and critical fields), the new semiconductor software export controls, the stated U.S. motivations (national security, tech protection), and the potential consequences (impact on students, universities, US-China trade relations, global tech supply chains). Include a balanced perspective, mentioning concerns from various stakeholders (e.g., student anxieties, university finances, tech industry, geopolitical analysts). Conclude with the potential long-term implications.</li>
+<li><strong>Tone:</strong> Informative, analytical, and balanced.</li>
+</ul>
+</li>
+<li><p><strong>News Article (400-600 words):</strong></p>
+<ul>
+<li><strong>Headline:</strong> Factual and direct, e.g., &quot;US to Revoke Visas for Some Chinese Students, Imposes New Tech Export Controls on China.&quot;</li>
+<li><strong>Content:</strong> Focus on the key facts: what was announced, who announced it (Trump administration, Sec. of State Marco Rubio), the specifics of the visa crackdown (targeting CCP ties, critical fields) and semiconductor software controls. Include immediate reactions (e.g., Chinese government condemnation, concerns from academic institutions). Maintain a neutral, objective tone. Prioritize the &quot;who, what, when, where, why&quot; of the news.</li>
+<li><strong>Tone:</strong> Objective, factual, and journalistic.</li>
+</ul>
+</li>
+<li><p><strong>YouTube Short (Script - 45-60 seconds):</strong></p>
+<ul>
+<li><strong>Visuals Suggestion (for the video editor):</strong> Fast-paced cuts – White House, students on campus, microchips, Chinese flag, US flag, Marco Rubio, text overlays of key phrases.</li>
+<li><strong>Script:</strong><ul>
+<li>Hook (0-5s): &quot;US-China tensions just hit a new high!&quot;</li>
+<li>Core Info (5-25s): &quot;The Trump administration plans to revoke visas for many Chinese students, especially in tech fields or with CCP ties. Plus, new blocks on vital semiconductor software sales to China!&quot;</li>
+<li>Impact (25-40s): &quot;This could shake up universities, the tech world, and a fragile trade truce! Big concerns about lost talent and escalating conflict.&quot;</li>
+<li>CTA (40-50s): &quot;What does this mean for global tech? Follow for updates!&quot;</li>
+</ul>
+</li>
+<li><strong>Tone:</strong> Energetic, urgent, and easily digestible.</li>
+</ul>
+</li>
+<li><p><strong>X Tweet (formerly Twitter) (Max 280 characters):</strong></p>
+<ul>
+<li><strong>Content:</strong> &quot;BREAKING: Trump admin to revoke visas for select Chinese students (CCP ties, critical fields) &amp; curb semiconductor software exports to China. Concerns mount over impact on US-China trade truce, universities &amp; tech sector. #USChina #TechWar #StudentVisas #Semiconductors&quot;</li>
+<li><strong>Tone:</strong> Concise, informative, and uses relevant hashtags.</li>
+</ul>
+</li>
+<li><p><strong>YouTube Video (Script - 5-7 minutes):</strong></p>
+<ul>
+<li><strong>Title:</strong> &quot;Explained: US Crackdown on Chinese Student Visas &amp; Tech Exports – What You Need to Know&quot;</li>
+<li><strong>Intro (0-30s):</strong> Briefly introduce the two main policy changes (visas and semiconductor software) and their significance in US-China relations.</li>
+<li><strong>Segment 1: The Visa Crackdown (1-2 mins):</strong> Detail the plan to revoke Chinese student visas. Who is targeted? Why? Mention Secretary Rubio. Discuss the concerns of students and universities.</li>
+<li><strong>Segment 2: Semiconductor Software Controls (1-2 mins):</strong> Explain the new export controls on EDA tools. Why is this software important (&quot;choke point&quot;)? How does it impact China&#39;s tech ambitions and US companies?</li>
+<li><strong>Segment 3: The Bigger Picture (1-2 mins):</strong> Discuss the context – US-China trade tensions, national security concerns, intellectual property protection. How does this fit into broader geopolitical strategies?</li>
+<li><strong>Segment 4: Potential Consequences &amp; Reactions (1 min):</strong> Summarize the potential fallout – impact on trade, research, global talent flow. Include China&#39;s reaction.</li>
+<li><strong>Outro (30s):</strong> Briefly recap and encourage viewers to comment with their thoughts and subscribe for more analysis.</li>
+<li><strong>Visuals Suggestion (for the video editor):</strong> Mix of talking head, graphics explaining the policies, news clips (if available), stock footage (students, campuses, tech labs, global trade imagery).</li>
+<li><strong>Tone:</strong> In-depth, analytical, and engaging for a general audience interested in current affairs.</li>
+</ul>
+</li>
+<li><p><strong>Instagram Post (Caption and Image Suggestion):</strong></p>
+<ul>
+<li><strong>Image Suggestion:</strong> A split image: one side showing a concerned student looking at a laptop, the other side showing a stylized microchip with a &quot;restricted&quot; icon. Or a graphic with key text like &quot;US-CHINA: VISA &amp; TECH CURBS.&quot;</li>
+<li><strong>Caption:</strong>
+  &quot;New US policies are shaking up relations with China. 📉 The Trump administration plans to revoke visas for some Chinese students, especially those in critical fields or with CCP links. 🎓 Simultaneously, new export controls hit crucial semiconductor design software for China. 💻
+  This move sparks:
+  ➡️ Widespread concern for students &amp; universities
+  ➡️ Fears of disrupting the US-China trade truce
+  ➡️ Debates on national security vs. global collaboration
+  What are your thoughts on these developments? Share in the comments! 👇
+  #USChinaRelations #TechPolicy #StudentVisas #Semiconductors #GlobalTrade #Geopolitics #TrumpAdmin #MarcoRubio&quot;</li>
+<li><strong>Tone:</strong> Visually engaging, informative, and encourages interaction. Use emojis appropriately.</li>
+</ul>
+</li>
+<li><p><strong>Facebook Post:</strong></p>
+<ul>
+<li><strong>Content:</strong> &quot;Major shifts in US-China policy: The Trump administration has announced plans to &#39;aggressively&#39; revoke visas for Chinese students with alleged CCP ties or studying in critical tech fields. Additionally, new export controls are being placed on vital semiconductor design software to China.
+  These measures, aimed at protecting US national security and technology, are raising significant concerns:<ul>
+<li>Impact on thousands of Chinese students and the US universities they attend.</li>
+<li>Potential disruption to the fragile US-China trade truce.</li>
+<li>Worries within the tech industry about supply chains and innovation.
+  Secretary of State Marco Rubio is a key voice in these new policies. China has already voiced strong opposition.
+  What do you think the short-term and long-term consequences of these actions will be? Discuss below.
+  Read more (conceptual link to a full article/blog): [Link to the generated blog post or article if it were live]</li>
+</ul>
+<p>  #USChina #ForeignPolicy #TechWar #StudentExchange #SemiconductorIndustry #TradeRelations #GlobalNews&quot;</p>
+</li>
+<li><strong>Tone:</strong> Informative, slightly more detailed than Instagram, and designed to encourage discussion.</li>
+</ul>
+</li>
+</ol>
+<p>Ensure all generated content accurately reflects the Core News Information provided.
+[PROMPT2 END]</p>
+
+          </main>
+        </body>
+        </html>
+      
